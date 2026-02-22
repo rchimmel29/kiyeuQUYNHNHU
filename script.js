@@ -4,77 +4,98 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('click-overlay');
     const doors = document.querySelector('.door-wrap');
     
+    // Cấu hình đoạn nhạc (giây)
     const startTime = 99; // 1:39
     const endTime = 130;  // 2:10
 
-    // Hàm phát nhạc chuẩn xác
-    function forcePlayMusic() {
-        if (audio.paused) {
-            // Đảm bảo set thời gian trước khi play để không bị nhảy về 0s
+    /**
+     * 1. HÀM PHÁT NHẠC CHUẨN XÁC
+     * Đảm bảo luôn nhảy đúng giây trước khi phát
+     */
+    function toggleMusic(forcePlay = false) {
+        if (forcePlay || audio.paused) {
+            // Ép nhạc về đúng đoạn 99s nếu đang ở ngoài khoảng quy định
             if (audio.currentTime < startTime || audio.currentTime > endTime) {
                 audio.currentTime = startTime;
             }
             
-            audio.play().then(() => {
-                musicControl.classList.add('playing');
-            }).catch(err => {
-                console.log("Chờ tương tác người dùng để phát nhạc.");
-            });
+            audio.play()
+                .then(() => {
+                    musicControl.classList.add('playing');
+                })
+                .catch(err => {
+                    console.log("Trình duyệt yêu cầu tương tác thêm:", err);
+                });
+        } else {
+            audio.pause();
+            musicControl.classList.remove('playing');
         }
     }
 
-    // Lặp đoạn nhạc 99s - 130s
+    /**
+     * 2. LẶP ĐOẠN NHẠC (99s - 130s)
+     */
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
         }
     });
 
-    // --- XỬ LÝ MỞ THƯ ---
+    /**
+     * 3. XỬ LÝ HITBOX TOÀN MÀN HÌNH (OVERLAY)
+     * Nhấn vào bất cứ đâu khi thư chưa mở sẽ phát nhạc và mở cửa
+     */
     if (overlay) {
-        function startApp(e) {
-            // 1. Phát nhạc ngay lập tức tại điểm chạm
-            forcePlayMusic();
+        const startApp = (e) => {
+            // Ngăn chặn các hành động mặc định của trình duyệt
+            if (e.cancelable) e.preventDefault();
             
-            // 2. Hiệu ứng mở cửa
-            overlay.style.display = 'none';
+            // Phát nhạc ngay lập tức tại thời điểm chạm (Mobile cần điều này)
+            toggleMusic(true);
+
+            // Hiệu ứng mở cửa
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+
             if (doors) {
                 doors.classList.add('open');
                 const content = document.getElementById('invite-content');
                 if (content) content.style.opacity = '1';
                 setTimeout(() => doors.style.display = 'none', 1800);
             }
-            
-            // Gỡ bỏ sự kiện sau khi dùng
+
+            // Gỡ bỏ sự kiện sau khi kích hoạt xong
             overlay.removeEventListener('click', startApp);
             overlay.removeEventListener('touchstart', startApp);
-        }
+        };
+
         overlay.addEventListener('click', startApp);
-        overlay.addEventListener('touchstart', startApp);
+        overlay.addEventListener('touchstart', startApp, { passive: false });
     }
 
-    // --- BACKUP: NHẤN VÀO BẤT CỨ ĐÂU ĐỂ PHÁT NHẠC ---
-    // Nếu vì lý do nào đó nhấn overlay chưa phát, lần chạm tiếp theo vào màn hình sẽ kích hoạt
-    document.body.addEventListener('click', function() {
-        forcePlayMusic();
-    }, { once: false }); // Để false để nếu user pause nhạc, nhấn lại vẫn phát được
-
-    document.body.addEventListener('touchstart', function() {
-        forcePlayMusic();
-    }, { once: false });
-
-    // --- NÚT ĐIỀU KHIỂN GÓC MÀN HÌNH ---
+    /**
+     * 4. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI
+     */
     musicControl.addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện click của body
-        if (audio.paused) {
-            forcePlayMusic();
-        } else {
-            audio.pause();
-            musicControl.classList.remove('playing');
+        e.stopPropagation(); // Không kích hoạt sự kiện click của body
+        toggleMusic();
+    });
+
+    /**
+     * 5. BACKUP: NHẤN VÀO BẤT CỨ ĐÂU ĐỂ PHÁT
+     * Nếu nhạc bị dừng hoặc chưa phát, chạm màn hình sẽ tự bật lại
+     */
+    document.body.addEventListener('click', () => {
+        if (audio.paused && (!overlay || overlay.style.display === 'none')) {
+            toggleMusic(true);
         }
     });
 
-    // --- 4. HIỆU ỨNG TUYẾT (giữ nguyên) ---
+    /**
+     * 6. HIỆU ỨNG TUYẾT RƠI
+     */
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -108,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function drawSnow() {
             ctx.clearRect(0, 0, width, height);
-            
             particles.forEach(p => {
                 ctx.save();
                 ctx.shadowBlur = 4;
@@ -135,29 +155,39 @@ document.addEventListener('DOMContentLoaded', function() {
         drawSnow();
     }
 
-    // --- 5. LỊCH (giữ nguyên) ---
+    /**
+     * 7. LỊCH THÁNG 3/2026
+     */
     renderCalendar();
 });
 
-// Hàm renderCalendar giữ nguyên như cũ
 function renderCalendar() {
     const monthDisplay = document.getElementById('monthDisplay');
     const calendarGrid = document.getElementById('calendarGrid');
     const prevMonthBtn = document.getElementById('prevMonth');
     const nextMonthBtn = document.getElementById('nextMonth');
+    
     if (!monthDisplay || !calendarGrid) return;
-    let currentMonth = 2; let currentYear = 2026;
+    
+    let currentMonth = 2; // Tháng 3 (JS đếm từ 0)
+    let currentYear = 2026;
+
     function displayCalendar(month, year) {
         const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
         monthDisplay.textContent = `${monthNames[month]} / ${year}`;
+        
         const firstDay = new Date(year, month, 1).getDay();
         let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
+        
         let gridHtml = '';
         const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
         weekdays.forEach(day => { gridHtml += `<div class="weekday">${day}</div>`; });
-        let dayCounter = 1; let nextMonthDayCounter = 1;
+        
+        let dayCounter = 1; 
+        let nextMonthDayCounter = 1;
+        
         for (let row = 0; row < 6; row++) {
             for (let col = 0; col < 7; col++) {
                 if (row === 0 && col < startOffset) {
@@ -175,12 +205,17 @@ function renderCalendar() {
         }
         calendarGrid.innerHTML = gridHtml;
     }
+
     displayCalendar(currentMonth, currentYear);
-    prevMonthBtn.addEventListener('click', () => {
+    
+    prevMonthBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (currentMonth === 0) { currentMonth = 11; currentYear--; } else { currentMonth--; }
         displayCalendar(currentMonth, currentYear);
     });
-    nextMonthBtn.addEventListener('click', () => {
+    
+    nextMonthBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth++; }
         displayCalendar(currentMonth, currentYear);
     });
