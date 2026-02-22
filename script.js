@@ -1,30 +1,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('myAudio');
     const musicControl = document.getElementById('music-control');
-    
-    // --- 1. QUẢN LÝ NHẠC (1:39 - 2:10) ---
+    const clickOverlay = document.getElementById('click-overlay');
+    const doors = document.querySelector('.door-wrap');
+    const content = document.getElementById('invite-content');
+
+    // Cấu hình thời gian nhạc
     const startTime = 99; 
     const endTime = 130;  
 
-    function initAudio() {
-        if (audio.paused) {
-            audio.currentTime = startTime;
-            audio.play().then(() => {
-                musicControl.classList.add('playing');
-            }).catch(err => console.log("Chờ tương tác..."));
-        }
-    }
+    // Sự kiện chính: Khi người dùng nhấn vào màn hình
+    clickOverlay.addEventListener('click', function() {
+        // 1. Ẩn lớp phủ
+        clickOverlay.classList.add('fade-out');
 
-    // Kích hoạt khi chạm bất kỳ đâu
-    document.addEventListener('click', initAudio, { once: true });
-    document.addEventListener('touchstart', initAudio, { once: true });
+        // 2. Chạy nhạc
+        audio.currentTime = startTime;
+        audio.play().then(() => {
+            musicControl.classList.add('playing');
+        }).catch(err => console.log("Lỗi âm thanh:", err));
 
+        // 3. Mở cửa (Sau khi ẩn overlay một chút cho mượt)
+        setTimeout(() => {
+            if (doors) {
+                doors.classList.add('open');
+                if (content) content.style.opacity = '1';
+                setTimeout(() => doors.style.display = 'none', 1800);
+            }
+        }, 300);
+    });
+
+    // Quản lý vòng lặp nhạc
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
         }
     });
 
+    // Nút điều khiển nhạc thủ công
     musicControl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (audio.paused) {
@@ -36,16 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- 2. HIỆU ỨNG MỞ CỬA ---
-    const doors = document.querySelector('.door-wrap');
-    if (doors) {
-        setTimeout(() => {
-            doors.classList.add('open');
-            const content = document.getElementById('invite-content');
-            if (content) content.style.opacity = '1';
-            setTimeout(() => doors.style.display = 'none', 1800);
-        }, 500);
-    }
+    // --- HIỆU ỨNG TUYẾT RƠI (Giữ nguyên phần dưới của bạn) ---
+    // ... copy lại code canvas và renderCalendar của bạn vào đây ...
 
     // --- 3. HIỆU ỨNG TUYẾT TRẮNG (ĐỘ ĐẬM VỪA PHẢI) ---
     const canvas = document.getElementById('snowCanvas');
