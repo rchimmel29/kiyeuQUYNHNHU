@@ -11,22 +11,25 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 1. HÀM PHÁT NHẠC CHUẨN XÁC
      */
-    function playMusicAtTarget() {
+    function playMusicSequence() {
         if (audio.paused) {
-            // Nhảy đến đúng đoạn 99s nếu chưa bắt đầu hoặc lệch khung
+            // Nhảy đến đúng đoạn 99s trước khi Play
             if (audio.currentTime < startTime || audio.currentTime >= endTime) {
                 audio.currentTime = startTime;
             }
+            
             audio.play()
                 .then(() => {
                     musicControl.classList.add('playing');
                 })
-                .catch(err => console.log("Chờ tương tác thực tế..."));
+                .catch(err => {
+                    console.log("Trình duyệt chặn phát tự động, chờ tương tác...");
+                });
         }
     }
 
     /**
-     * 2. LẶP ĐOẠN NHẠC
+     * 2. LẶP ĐOẠN NHẠC (Loop từ 99s đến 130s)
      */
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
@@ -36,14 +39,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
-     * 3. TÍNH NĂNG "NHẤN BẤT CỨ ĐÂU - CHỈ 1 LẦN" (TOÀN MÀN HÌNH)
-     * Tính năng này bao phủ toàn bộ màn hình kể cả khi cửa đã mở.
+     * 3. TÍNH NĂNG NHẤN BẤT CỨ ĐÂU (WINDOW)
+     * Kể cả khi cửa đã mở, nhấn vào bất cứ điểm nào trên màn hình đều kích hoạt nhạc.
      */
-    const triggerInitialAction = (e) => {
-        // A. Phát nhạc
-        playMusicAtTarget();
+    const handleInitialInteraction = (e) => {
+        // A. Kích hoạt nhạc ngay lập tức
+        playMusicSequence();
 
-        // B. Nếu thư chưa mở thì mở thư (xử lý overlay)
+        // B. Nếu thư đang đóng (overlay còn đó) thì thực hiện mở thư
         if (overlay && overlay.style.display !== 'none') {
             overlay.style.opacity = '0';
             setTimeout(() => {
@@ -58,22 +61,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // C. Quan trọng: Gỡ bỏ sự kiện này để không làm phiền người dùng nữa
-        window.removeEventListener('click', triggerInitialAction);
-        window.removeEventListener('touchstart', triggerInitialAction);
+        // C. Tự hủy sự kiện sau khi đã kích hoạt thành công 1 lần
+        window.removeEventListener('click', handleInitialInteraction);
+        window.removeEventListener('touchstart', handleInitialInteraction);
     };
 
     // Đăng ký sự kiện lên WINDOW để chiếm quyền toàn màn hình
-    window.addEventListener('click', triggerInitialAction);
-    window.addEventListener('touchstart', triggerInitialAction, { passive: false });
+    window.addEventListener('click', handleInitialInteraction);
+    window.addEventListener('touchstart', handleInitialInteraction, { passive: false });
 
     /**
-     * 4. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI (Dùng sau khi đã kích hoạt lần đầu)
+     * 4. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI
+     * Dùng để bật/tắt thủ công sau khi đã kích hoạt lần đầu.
      */
     musicControl.addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện kích hoạt ngược lên window
+        e.stopPropagation(); // Quan trọng: Ngăn sự kiện nhảy ngược lên window
         if (audio.paused) {
-            playMusicAtTarget();
+            playMusicSequence();
         } else {
             audio.pause();
             musicControl.classList.remove('playing');
@@ -81,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
-     * 5. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên của bạn)
+     * 5. HIỆU ỨNG TUYẾT RƠI
      */
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
@@ -95,7 +99,9 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.height = height;
             const density = Math.floor((width * height) / 10000); 
             particles = [];
-            for (let i = 0; i < density; i++) particles.push(createParticle(true));
+            for (let i = 0; i < density; i++) {
+                particles.push(createParticle(true));
+            }
         }
 
         function createParticle(initial = false) {
@@ -122,13 +128,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
+
                 p.y += p.speedY;
                 p.swingStep += p.swing;
                 p.x += p.speedX + Math.sin(p.swingStep) * 0.4;
-                if (p.y > height + 10) Object.assign(p, createParticle(false));
+
+                if (p.y > height + 10) {
+                    Object.assign(p, createParticle(false));
+                }
             });
             requestAnimationFrame(drawSnow);
         }
+
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
         drawSnow();
@@ -148,7 +159,7 @@ function renderCalendar() {
     
     if (!monthDisplay || !calendarGrid) return;
     
-    let currentMonth = 2; // Tháng 3
+    let currentMonth = 2; // Tháng 3 (JS đếm từ 0)
     let currentYear = 2026;
 
     function displayCalendar(month, year) {
@@ -195,7 +206,7 @@ function renderCalendar() {
     
     nextMonthBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth++; }
+        if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth--; }
         displayCalendar(currentMonth, currentYear);
     });
 }
