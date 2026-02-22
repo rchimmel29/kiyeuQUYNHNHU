@@ -11,19 +11,17 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 1. HÀM PHÁT NHẠC CHUẨN XÁC
      */
-    function playMusicSequence() {
+    function playMusicAtTarget() {
         if (audio.paused) {
-            // Nhảy đến đúng đoạn 99s trước khi Play
-            if (audio.currentTime < startTime || audio.currentTime >= endTime) {
-                audio.currentTime = startTime;
-            }
+            // Nhảy đến đúng đoạn 99s trước khi phát
+            audio.currentTime = startTime;
             
             audio.play()
                 .then(() => {
                     musicControl.classList.add('playing');
                 })
                 .catch(err => {
-                    console.log("Trình duyệt chặn phát tự động, chờ tương tác...");
+                    console.log("Trình duyệt yêu cầu tương tác thêm để phát nhạc.");
                 });
         }
     }
@@ -39,15 +37,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
-     * 3. TÍNH NĂNG NHẤN BẤT CỨ ĐÂU (WINDOW)
-     * Kể cả khi cửa đã mở, nhấn vào bất cứ điểm nào trên màn hình đều kích hoạt nhạc.
+     * 3. XỬ LÝ MỞ THƯ (KHÔNG PHÁT NHẠC)
      */
-    const handleInitialInteraction = (e) => {
-        // A. Kích hoạt nhạc ngay lập tức
-        playMusicSequence();
+    if (overlay) {
+        const openLetter = (e) => {
+            if (e.cancelable) e.preventDefault();
 
-        // B. Nếu thư đang đóng (overlay còn đó) thì thực hiện mở thư
-        if (overlay && overlay.style.display !== 'none') {
+            // Chỉ làm hiệu ứng mở thư, tuyệt đối không gọi lệnh play nhạc ở đây
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.display = 'none';
@@ -59,25 +55,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (content) content.style.opacity = '1';
                 setTimeout(() => doors.style.display = 'none', 1800);
             }
-        }
 
-        // C. Tự hủy sự kiện sau khi đã kích hoạt thành công 1 lần
-        window.removeEventListener('click', handleInitialInteraction);
-        window.removeEventListener('touchstart', handleInitialInteraction);
-    };
+            // Gỡ bỏ sự kiện mở thư
+            overlay.removeEventListener('click', openLetter);
+            overlay.removeEventListener('touchstart', openLetter);
 
-    // Đăng ký sự kiện lên WINDOW để chiếm quyền toàn màn hình
-    window.addEventListener('click', handleInitialInteraction);
-    window.addEventListener('touchstart', handleInitialInteraction, { passive: false });
+            // QUAN TRỌNG: Sau khi mở thư xong, mới bắt đầu lắng nghe sự kiện "nhấn đâu cũng phát nhạc"
+            setTimeout(() => {
+                window.addEventListener('click', triggerMusicOnce);
+                window.addEventListener('touchstart', triggerMusicOnce);
+            }, 1000); // Đợi 1s cho cửa mở xong rồi mới cho phép click phát nhạc
+        };
+
+        overlay.addEventListener('click', openLetter);
+        overlay.addEventListener('touchstart', openLetter, { passive: false });
+    }
 
     /**
-     * 4. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI
-     * Dùng để bật/tắt thủ công sau khi đã kích hoạt lần đầu.
+     * 4. HÀM KÍCH HOẠT NHẠC KHI NHẤN MÀN HÌNH (Sau khi cửa mở)
+     */
+    const triggerMusicOnce = () => {
+        playMusicAtTarget();
+        
+        // Sau khi đã phát nhạc lần đầu, gỡ bỏ lắng nghe này để không bị reset nhạc mỗi lần click
+        window.removeEventListener('click', triggerMusicOnce);
+        window.removeEventListener('touchstart', triggerMusicOnce);
+    };
+
+    /**
+     * 5. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI (Duy trì để bật/tắt thủ công)
      */
     musicControl.addEventListener('click', (e) => {
-        e.stopPropagation(); // Quan trọng: Ngăn sự kiện nhảy ngược lên window
+        e.stopPropagation(); // Ngăn sự kiện nhảy ngược lên window
         if (audio.paused) {
-            playMusicSequence();
+            playMusicAtTarget();
         } else {
             audio.pause();
             musicControl.classList.remove('playing');
@@ -85,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
-     * 5. HIỆU ỨNG TUYẾT RƠI
+     * 6. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên từ bản gốc)
      */
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
@@ -99,9 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.height = height;
             const density = Math.floor((width * height) / 10000); 
             particles = [];
-            for (let i = 0; i < density; i++) {
-                particles.push(createParticle(true));
-            }
+            for (let i = 0; i < density; i++) particles.push(createParticle(true));
         }
 
         function createParticle(initial = false) {
@@ -128,25 +137,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
-
                 p.y += p.speedY;
                 p.swingStep += p.swing;
                 p.x += p.speedX + Math.sin(p.swingStep) * 0.4;
-
-                if (p.y > height + 10) {
-                    Object.assign(p, createParticle(false));
-                }
+                if (p.y > height + 10) Object.assign(p, createParticle(false));
             });
             requestAnimationFrame(drawSnow);
         }
-
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
         drawSnow();
     }
 
     /**
-     * 6. LỊCH THÁNG 3/2026
+     * 7. LỊCH THÁNG 3/2026
      */
     renderCalendar();
 });
@@ -159,25 +163,20 @@ function renderCalendar() {
     
     if (!monthDisplay || !calendarGrid) return;
     
-    let currentMonth = 2; // Tháng 3 (JS đếm từ 0)
+    let currentMonth = 2; // Tháng 3
     let currentYear = 2026;
 
     function displayCalendar(month, year) {
         const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
         monthDisplay.textContent = `${monthNames[month]} / ${year}`;
-        
         const firstDay = new Date(year, month, 1).getDay();
         let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
-        
         let gridHtml = '';
         const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
         weekdays.forEach(day => { gridHtml += `<div class="weekday">${day}</div>`; });
-        
-        let dayCounter = 1; 
-        let nextMonthDayCounter = 1;
-        
+        let dayCounter = 1; let nextMonthDayCounter = 1;
         for (let row = 0; row < 6; row++) {
             for (let col = 0; col < 7; col++) {
                 if (row === 0 && col < startOffset) {
@@ -195,18 +194,15 @@ function renderCalendar() {
         }
         calendarGrid.innerHTML = gridHtml;
     }
-
     displayCalendar(currentMonth, currentYear);
-    
     prevMonthBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (currentMonth === 0) { currentMonth = 11; currentYear--; } else { currentMonth--; }
         displayCalendar(currentMonth, currentYear);
     });
-    
     nextMonthBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth--; }
+        if (currentMonth === 11) { currentMonth = 0; currentYear++; } else { currentMonth++; }
         displayCalendar(currentMonth, currentYear);
     });
 }
