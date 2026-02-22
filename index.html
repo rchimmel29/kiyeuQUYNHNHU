@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Đinh Thị Quỳnh Như – 12D5, THPT Lê Viết Thuật | Thiệp mời kỷ yếu</title>
+    <meta name="description" content="Trân trọng mời bạn đến tham dự lễ chụp tốt nghiệp của mình!" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Đinh Thị Quỳnh Như – 12 D5, THPT Lê Viết Thuật" />
+<style>
+/* Nút điều khiển âm thanh */
+.music-control {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.9);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    border: 2px solid var(--accent-brown);
+    transition: all 0.3s ease;
+}
+
+.music-control:hover {
+    transform: scale(1.1);
+}
+
+.music-icon {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 18px;
+}
+
+.music-icon .bar {
+    width: 3px;
+    background-color: var(--accent-brown);
+    height: 100%;
+    animation: musicWave 1s ease-in-out infinite;
+    animation-play-state: paused;
+}
+
+.music-icon .bar:nth-child(1) { height: 60%; animation-delay: 0.0s; }
+.music-icon .bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
+.music-icon .bar:nth-child(3) { height: 80%; animation-delay: 0.4s; }
+
+@keyframes musicWave {
+    0%, 100% { height: 20%; }
+    50% { height: 100%; }
+}
+
+.music-control.playing .bar {
+    animation-play-state: running;
+}
+</style>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="door-wrap">
+        <img src="./img/trai.jpg" class="door-door left" alt="" />
+        <img src="./img/phai.jpg" class="door-door right" alt="" />
+    </div>
+    <div id="music-control" class="music-control">
+        <div class="music-icon">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <audio id="myAudio" src="./Tình Bạn Diệu Kỳ.mp3" loop preload="auto"></audio>
+    </div>
+
+    <div id="invite-content" class="invite-content">
+        <div class="row">
+            <div class="col-lg-24">
+                <div class="card mb-3 hover-shadow-sm" style="border: none">
+                    <div class="card-body text-center invite-card">
+                        <h3 class="invite-title headtitle">Thư mời kỷ yếu</h3>
+                        <h2 class="invite-subtitle">Tốt nghiệp</h2>
+
+                        <br />
+                        <h3 class="invite-name">Đinh Thị Quỳnh Như</h3>
+                        <p class="invite-badge">12D5, THPT Lê Viết Thuật</p>
+
+                        <div class="invite-section invite-quote">
+                            <div class="center quote-text">
+                                “Hy vọng cậu sẽ là một phần trong những kỷ niệm đẹp nhất của mình!”
+                            </div>
+                        </div>
+                        <h3 class="section-script invite-title infotitle">Thông tin</h3>
+                        <h2 class="section-sub infosubtitle">Thời gian &amp; địa điểm</h2>
+
+                        <div class="invite-info">
+                            <div class="invite-image">
+                                <div class="img-frame">
+                                    <img src="./img/như.jpg" alt="image" loading="lazy" />
+                                </div>
+                            </div>
+
+                            <div class="about-text">
+                                <p>
+                                    Xin mời bạn đến chung vui cùng mình! <span class="animated-heart">❤️</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <p class="calender-title"><b class="font-bold text-korean">🕒 Thời gian:</b> Thứ Bảy, ngày 07/03/2026</p>
+                            <div class="calendar-wrapper">
+                                <div class="calendar-header">
+                                    <button type="button" id="prevMonth" class="text-body">&lt;</button>
+                                    <h3 id="monthDisplay" class="font-bold text-xl">Tháng 3 / 2026</h3>
+                                    <button type="button" id="nextMonth" class="text-body">&gt;</button>
+                                </div>
+                                <div class="calendar-grid" id="calendarGrid"></div>
+                            </div>
+
+                            <p class="calender-title" style="font-family: var(--ff-korean); font-weight: 400;"><b style="font-family: var(--ff-korean); font-weight: 500;">▶ Địa chỉ:</b> Sân trường THPT Lê Viết Thuật</p>
+
+                            <a href="https://www.google.com/maps/search/S%C3%A2n+tr%C6%B0%E1%BB%9Dng+THPT+L%C3%AA+Vi%E1%BA%BFt+Thu%E1%BA%ADt" target="_blank" class="invite-button normal-text" rel="noopener">XEM CHỈ ĐƯỜNG</a>
+                        </div>
+
+                        <div class="mt-2">
+                            <div class="contact-info mt-3">
+                                <p class="normal-text"><b>Hotline:</b> <a href="tel:0948689937">094 8689 937</a></p>
+                                <p class="normal-text"><b>Facebook:</b> <a href="https://www.facebook.com/dinhtqnhu" target="_blank" rel="noopener">Quỳnh Như</a></p>
+                            </div>
+                        </div>
+
+                        <h3 class="section-script mt-40 invite-title confirmtitle">Xác nhận tham dự</h3>
+                        <h2 class="section-sub">&amp; lời chúc</h2>
+
+                        <form id="rsvp-form" class="invite-form" accept-charset="UTF-8">
+                            <input type="hidden" name="csrf" value="" />
+                            <input type="hidden" name="invite_id" value="15079" />
+
+                            <div class="form-group">
+                                <label for="name">Tên của bạn</label>
+                                <input type="text" id="name" name="name" placeholder="Ví dụ: Quỳnh Như" required />
+                            </div>
+
+                            <div class="form-group normal-text">
+                                <label for="relation">Lời chúc gửi đến Quỳnh Như</label>
+                                <input type="text" id="relation" name="relation" placeholder="Nhập lời chúc của bạn tại đây..." />
+                            </div>
+
+                            <div class="form-group normal-text">
+                                <label for="join">Bạn có tham dự không?</label>
+                                <select class="text-body" name="join" id="join" required>
+                                    <option class="text-body" value="" disabled selected>-- Chọn câu trả lời --</option>
+                                    <option class="text-body" value="yes">Chắc chắn mình sẽ đến! ✨</option>
+                                    <option class="text-body" value="no">Tiếc quá, mình bận mất rồi 🥺</option>
+                                    <option class="text-body" value="maybe">Để mình xem lại lịch nhé 🤔</option>
+                                </select>
+                            </div>
+
+                            <div class="preview-section">
+                                <div class="msg-head normal-text" style="font-size: 20px;">Xem trước lời chúc:</div>
+                                <textarea name="message" id="message-preview" rows="3" class="msg-body font-message-preview" placeholder="Lời chúc của bạn sẽ hiện ở đây..." readonly></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-submit">
+                                <span class="normal-text" style="color: white">GỬI LỜI CHÚC</span>
+                            </button>
+
+                            <div id="rsvp-alert" class="mt-2" style="display: none"></div>
+                        </form>
+
+                        <div class="center2 mt-30">
+                            <img src="./img/thank-you.png" alt="" width="230" loading="lazy" /><br /><br />
+                            <div class="invite-footer-pro">
+                                <span class="font-serif font-medium text-3xl">Đinh Thị Quỳnh Như & RCH</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
