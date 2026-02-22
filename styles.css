@@ -49,51 +49,48 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+/* ==========================================================================
+   TOUCH TO START OVERLAY
+   ======================================================================= */
 .click-overlay {
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7); /* Làm tối nền một chút */
-    z-index: 10001; /* Phải cao hơn cả door-wrap */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: opacity 0.8s ease;
+    transition: opacity 0.5s ease;
 }
 
 .click-hint {
     text-align: center;
     color: white;
+    font-family: var(--font-body);
+    animation: bounce 2s infinite;
 }
 
 .finger-icon {
-    font-size: 50px;
-    animation: tapAnim 1.2s infinite;
+    font-size: 5rem;
+    margin-bottom: 1rem;
 }
 
 .click-hint p {
-    margin-top: 15px;
-    font-family: var(--font-body);
-    font-size: 1.2rem;
-    letter-spacing: 1px;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
 }
 
-.click-overlay {
-    /* ... các thuộc tính cũ của bạn ... */
-    touch-action: none; /* Ngăn chặn cuộn trang khi đang ở màn hình chờ này */
-    user-select: none;  /* Ngăn chặn việc bôi đen chữ khi nhấn giữ */
-    -webkit-tap-highlight-color: transparent; /* Xóa khung xanh khi chạm trên điện thoại */
-}
-/* Hiệu ứng ngón tay nhấp nháy */
-@keyframes tapAnim {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-}
-
-/* Ẩn overlay khi bắt đầu */
-.click-overlay.fade-out {
-    opacity: 0;
-    pointer-events: none;
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
 }
 #snowCanvas {
   pointer-events: none;
