@@ -4,21 +4,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('click-overlay');
     const doors = document.querySelector('.door-wrap');
     
-    // --- 1. HÀM PHÁT NHẠC (đoạn 1:39 - 2:10) ---
     const startTime = 99; 
     const endTime = 130;  
 
-    // Lặp lại đoạn nhạc
+    // Hàm hỗ trợ phát nhạc an toàn
+    function playMusic() {
+        audio.currentTime = startTime;
+        let playPromise = audio.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                musicControl.classList.add('playing');
+            }).catch(error => {
+                console.log("Playback prevented:", error);
+            });
+        }
+    }
+
+    // Kiểm tra lặp đoạn nhạc
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
         }
     });
 
-    // Điều khiển nhạc bằng nút (góc dưới phải)
+    // Xử lý khi nhấn Mở Thư
+    if (overlay) {
+        function startApp(e) {
+            e.preventDefault();
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
+            
+            // Quan trọng: Phát nhạc trước khi làm các hiệu ứng khác
+            playMusic();
+            
+            // Mở cửa
+            if (doors) {
+                doors.classList.add('open');
+                const content = document.getElementById('invite-content');
+                if (content) content.style.opacity = '1';
+                setTimeout(() => doors.style.display = 'none', 1800);
+            }
+        }
+        
+        overlay.addEventListener('click', startApp);
+        overlay.addEventListener('touchstart', startApp);
+    }
+
+    // Nút điều khiển nhạc thủ công
     musicControl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (audio.paused) {
+            if (audio.currentTime < startTime || audio.currentTime > endTime) {
+                audio.currentTime = startTime;
+            }
             audio.play();
             musicControl.classList.add('playing');
         } else {
@@ -26,49 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
             musicControl.classList.remove('playing');
         }
     });
-
-    // --- 2. HÀM MỞ CỬA ---
-    function openDoors() {
-        if (!doors) return;
-        doors.classList.add('open');               // cửa trượt ra
-        const content = document.getElementById('invite-content');
-        if (content) content.style.opacity = '1'; // hiện nội dung
-        setTimeout(() => doors.style.display = 'none', 1800); // ẩn cửa sau khi mở
-    }
-
-    // --- 3. XỬ LÝ OVERLAY (TOUCH TO START) ---
-    if (overlay) {
-        // Hàm kích hoạt – chạy ngay khi người dùng chạm/click
-        function startApp(e) {
-            // Ẩn overlay
-            overlay.style.display = 'none';
-            
-            // Phát nhạc ngay lập tức (không setTimeout)
-            audio.currentTime = startTime;
-            audio.play()
-                .then(() => {
-                    musicControl.classList.add('playing');
-                })
-                .catch(err => {
-                    console.log('Lỗi phát nhạc:', err);
-                    // (một số trình duyệt có thể yêu cầu tương tác lại, nhưng hiếm)
-                });
-            
-            // Mở cửa sau 0.5 giây (việc này không ảnh hưởng đến phát nhạc)
-            setTimeout(openDoors, 500);
-            
-            // Gỡ bỏ event listener sau khi đã kích hoạt (tránh chạy lại)
-            overlay.removeEventListener('click', startApp);
-            overlay.removeEventListener('touchstart', startApp);
-        }
-        
-        // Gắn cả sự kiện click và touchstart để tương thích mobile
-        overlay.addEventListener('click', startApp);
-        overlay.addEventListener('touchstart', startApp);
-    } else {
-        // Dự phòng: nếu không tìm thấy overlay, vẫn mở cửa sau 0.5s
-        setTimeout(openDoors, 500);
-    }
 
     // --- 4. HIỆU ỨNG TUYẾT (giữ nguyên) ---
     const canvas = document.getElementById('snowCanvas');
