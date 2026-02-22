@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Lặp đoạn nhạc
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Nút điều khiển thủ công
     musicControl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (audio.paused) {
@@ -36,55 +38,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- 2. LOGIC NHẬN DIỆN NHẤN HOẶC TRƯỢT ---
-    let startX = 0;
-    let startY = 0;
-
-    // Hàm kiểm tra xem có phải là thao tác (nhấn nhanh hoặc trượt)
-    function isInteraction(e, moveStartX, moveStartY) {
-        const moveEndX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const moveEndY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        const distance = Math.sqrt(Math.pow(moveEndX - moveStartX, 2) + Math.pow(moveEndY - moveStartY, 2));
-        return distance >= 0; // Chấp nhận mọi khoảng cách (nhấn = 0, trượt > 0)
-    }
-
-    // A. XỬ LÝ MỞ THƯ (Overlay)
+    // --- 2. LOGIC: MỜ DẦN RỒI MỚI MỞ CỬA ---
     if (overlay) {
-        const handleOverlayAction = (e) => {
-            // Thực hiện hiệu ứng mở thư
+        const handleOpenAction = () => {
+            // Bước 1: Làm mờ Overlay
             overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 500);
 
-            if (doors) {
-                doors.classList.add('open');
-                const content = document.getElementById('invite-content');
-                if (content) content.style.opacity = '1';
-                setTimeout(() => { doors.style.display = 'none'; }, 1800);
-            }
+            // Bước 2: Đợi Overlay mờ hẳn (600ms) rồi mới mở cửa
+            setTimeout(() => {
+                overlay.style.display = 'none';
 
-            // Gỡ bỏ sự kiện mở thư
-            overlay.removeEventListener('click', handleOverlayAction);
-            overlay.removeEventListener('touchend', handleOverlayAction);
+                // Bước 3: Bắt đầu mở cửa
+                if (doors) {
+                    doors.classList.add('open');
+                    const content = document.getElementById('invite-content');
+                    if (content) content.style.opacity = '1';
+                    
+                    // Xóa hoàn toàn cửa sau khi trượt xong
+                    setTimeout(() => { doors.style.display = 'none'; }, 1800);
+                }
 
-            // Đợi cửa mở xong thì bắt đầu cho phép nhấn để phát nhạc
-            setTimeout(enableMusicActivation, 600);
+                // Bước 4: Sau khi cửa đã bắt đầu mở, cho phép "Nhấn bất cứ đâu để phát nhạc"
+                enableMusicActivation();
+            }, 600); // 600ms này khớp với transition trong CSS
+
+            // Gỡ bỏ sự kiện sau khi dùng
+            overlay.removeEventListener('click', handleOpenAction);
+            overlay.removeEventListener('touchend', handleOpenAction);
         };
 
-        overlay.addEventListener('click', handleOverlayAction);
-        overlay.addEventListener('touchend', handleOverlayAction);
+        overlay.addEventListener('click', handleOpenAction);
+        overlay.addEventListener('touchend', (e) => {
+            e.preventDefault(); // Ngăn chặn double tap
+            handleOpenAction();
+        });
     }
 
-    // B. XỬ LÝ PHÁT NHẠC (Sau khi thư mở)
+    // Hàm kích hoạt nhạc khi người dùng nhấn/vuốt lần tiếp theo
     function enableMusicActivation() {
-        const handleMusicAction = () => {
+        const triggerMusic = () => {
             playMusic();
-            // Chỉ cần nhạc phát 1 lần là gỡ bỏ sự kiện toàn màn hình
-            window.removeEventListener('click', handleMusicAction);
-            window.removeEventListener('touchend', handleMusicAction);
+            window.removeEventListener('click', triggerMusic);
+            window.removeEventListener('touchend', triggerMusic);
         };
-
-        window.addEventListener('click', handleMusicAction);
-        window.addEventListener('touchend', handleMusicAction);
+        window.addEventListener('click', triggerMusic);
+        window.addEventListener('touchend', triggerMusic);
     }
 
     // --- 3. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên) ---
@@ -133,6 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
 });
 
+// --- 4. HÀM LỊCH (Giữ nguyên) ---
 function renderCalendar() {
     const monthDisplay = document.getElementById('monthDisplay');
     const calendarGrid = document.getElementById('calendarGrid');
