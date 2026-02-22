@@ -1,204 +1,172 @@
-// ==========================================================================
-// 1. QUẢN LÝ NHẠC NỀN & BIỂU TƯỢNG SÓNG
-// ==========================================================================
-const musicControl = document.getElementById('music-control');
-const audio = document.getElementById('myAudio');
-
-function toggleMusic() {
-    if (audio.paused) {
-        audio.play();
-        musicControl.classList.add('playing');
-    } else {
-        audio.pause();
-        musicControl.classList.remove('playing');
-    }
-}
-
-// Bật/tắt nhạc khi bấm vào nút điều khiển
-if (musicControl) {
-    musicControl.addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện lan ra ngoài document
-        toggleMusic();
-    });
-}
-
-// Chức năng bật nhạc khi click bất kỳ đâu lần đầu (để lách luật chặn autoplay của trình duyệt)
-const playOnFirstClick = () => {
-    if (audio.paused) {
-        audio.play().then(() => {
-            musicControl.classList.add('playing');
-        }).catch(e => console.log('Chờ tương tác người dùng để phát nhạc'));
-    }
-    document.removeEventListener('click', playOnFirstClick);
-};
-document.addEventListener('click', playOnFirstClick);
-
-
 document.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('myAudio');
+    const musicControl = document.getElementById('music-control');
     
-    // ==========================================================================
-    // 2. HIỆU ỨNG MỞ CỬA
-    // ==========================================================================
-    const doors = document.querySelector('.door-wrap');
-    const inviteContent = document.getElementById('invite-content');
+    // --- 1. QUẢN LÝ NHẠC (1:39 - 2:10) ---
+    const startTime = 99; // 1:39
+    const endTime = 130;  // 2:10
 
+    function initAudio() {
+        audio.currentTime = startTime;
+        audio.play().then(() => musicControl.classList.add('playing'))
+        .catch(() => console.log("Chờ tương tác để phát nhạc"));
+        
+        audio.addEventListener('timeupdate', function() {
+            if (this.currentTime >= endTime) {
+                this.currentTime = startTime; // Lặp lại đoạn nhạc
+            }
+        });
+    }
+
+    document.addEventListener('click', () => {
+        if (audio.paused) initAudio();
+    }, { once: true });
+
+    musicControl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (audio.paused) audio.play(); else audio.pause();
+        musicControl.classList.toggle('playing');
+    });
+
+    // --- 2. HIỆU ỨNG MỞ CỬA ---
+    const doors = document.querySelector('.door-wrap');
     if (doors) {
         setTimeout(() => {
             doors.classList.add('open');
-            if (inviteContent) {
-                inviteContent.style.opacity = '1';
-            }
-            setTimeout(() => {
-                doors.style.display = 'none';
-            }, 1800);
-        }, 100);
-    } else if (inviteContent) {
-        inviteContent.style.opacity = '1';
+            document.getElementById('invite-content').style.opacity = '1';
+            setTimeout(() => doors.style.display = 'none', 1800);
+        }, 500);
     }
 
-    // ==========================================================================
-    // 3. XỬ LÝ XEM TRƯỚC LỜI CHÚC (Đã sửa lỗi)
-    // ==========================================================================
-    const inputRelation = document.getElementById('relation'); // Ô nhập lời chúc
-    const messagePreview = document.getElementById('message-preview'); // Ô hiện xem trước
+// --- 3. HIỆU ỨNG TUYẾT RƠI (Gia tăng tỉ lệ màu xanh & Độ dày) ---
+const canvas = document.getElementById('snowCanvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
 
-    if (inputRelation && messagePreview) {
-        inputRelation.addEventListener('input', function() {
-            messagePreview.value = this.value;
-        });
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createParticle() {
+        return {
+            x: Math.random() * width,
+            y: Math.random() * -height,
+            // Kích thước hạt từ 3px đến 7px
+            radius: Math.random() * 4 + 3, 
+            // Tốc độ rơi phù hợp nhạc lãng mạn (1.2 - 2.0)
+            speedY: Math.random() * 0.4 + 1.2, 
+            speedX: (Math.random() - 0.5) * 0.6, 
+            swing: Math.random() * 0.03, 
+            swingStep: 0,
+            // Độ rõ nét cao hơn để nhìn rõ màu xanh
+            opacity: Math.random() * 0.5 + 0.4 
+        };
     }
 
-    // ==========================================================================
-    // 4. XỬ LÝ FORM RSVP (GỬI DỮ LIỆU)
-    // ==========================================================================
-    const form = document.getElementById('rsvp-form');
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
+    // Tăng số lượng lên 160 hạt để tạo cảm giác tuyết dày hơn
+    for (let i = 0; i < 160; i++) {
+        particles.push(createParticle());
+    }
 
-            const alertBox = document.getElementById('rsvp-alert');
-            if (alertBox) {
-                alertBox.style.display = 'block';
-                alertBox.innerText = '⏳ Đang gửi lời chúc...';
-                alertBox.className = 'alert alert-info';
-            }
+    function drawSnow() {
+        ctx.clearRect(0, 0, width, height);
+        
+        particles.forEach(p => {
+            const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
+            
+            // TĂNG TỈ LỆ MÀU XANH: 
+            // Tâm hạt là màu xanh ngọc nhạt, rìa là màu xanh trắng
+            gradient.addColorStop(0, `rgba(178, 235, 242, ${p.opacity})`);   // Cyan Blue nhạt
+            gradient.addColorStop(0.4, `rgba(224, 247, 250, ${p.opacity * 0.8})`); // Icy Blue
+            gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);             // Mờ dần ra trắng trong suốt
 
-            const formData = new FormData(this);
-            const rawData = {
-                name: this.name.value,
-                message: this.relation.value,
-                join: this.join.value
-            };
+            ctx.beginPath();
+            ctx.fillStyle = gradient;
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
 
-            try {
-                // Gửi đến Google Sheets
-                const googlePromise = fetch('https://script.google.com/macros/s/AKfycbwMrIhxVDcMlIMfVpa1-y_S7d7BoSRqXVEPemLqj8sdE-AJV5jeoUYKBnHfWZRZ6liNEg/exec', {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(rawData)
-                });
+            // Hiệu ứng di chuyển
+            p.swingStep += p.swing;
+            p.y += p.speedY;
+            p.x += p.speedX + Math.sin(p.swingStep) * 0.5;
 
-                // Gửi đến hệ thống TNT
-                formData.append('action', 'guest-send-message');
-                const tntPromise = fetch('https://thiep.kyyeutnt.vn/ajaxs/client/invite.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .catch(() => ({ msg: '✅ Đã gửi thành công!' }));
-
-                const [googleResult, tntResult] = await Promise.allSettled([googlePromise, tntPromise]);
-
-                let successMsg = '💖 Cảm ơn bạn, lời chúc đã được gửi!';
-                if (tntResult.status === 'fulfilled' && tntResult.value?.msg) {
-                    successMsg = tntResult.value.msg;
-                }
-
-                if (alertBox) {
-                    alertBox.innerText = successMsg;
-                    alertBox.className = 'alert alert-success';
-                }
-
-                // Reset form sau khi gửi
-                this.reset();
-                if (messagePreview) messagePreview.value = '';
-                
-            } catch (error) {
-                console.error('Lỗi:', error);
-                if (alertBox) {
-                    alertBox.innerText = '🎉 Gửi thành công!';
-                    alertBox.className = 'alert alert-success';
-                }
+            if (p.y > height) {
+                p.y = -20;
+                p.x = Math.random() * width;
             }
         });
+        requestAnimationFrame(drawSnow);
     }
-
-    // ==========================================================================
-    // 5. QUẢN LÝ LỊCH (CALENDAR)
-    // ==========================================================================
-    const calendarGrid = document.getElementById('calendarGrid');
-    const monthDisplay = document.getElementById('monthDisplay');
-    const prevBtn = document.getElementById('prevMonth');
-    const nextBtn = document.getElementById('nextMonth');
-
-    let currentDate = new Date(2026, 2, 1); // Bắt đầu tại tháng 3/2026
-    const targetDate = { day: 7, month: 2, year: 2026 }; // Ngày kỷ yếu: 07/03/2026
-
-    function renderCalendar() {
-        if (!calendarGrid || !monthDisplay) return;
-        calendarGrid.innerHTML = '';
-
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-
-        monthDisplay.innerText = `Tháng ${month + 1} / ${year}`;
-
-        const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-        weekdays.forEach(day => {
-            const cell = document.createElement('div');
-            cell.className = 'weekday';
-            cell.innerText = day;
-            calendarGrid.appendChild(cell);
-        });
-
-        const firstDay = new Date(year, month, 1).getDay();
-        let emptyCells = (firstDay === 0) ? 6 : firstDay - 1;
-
-        for (let i = 0; i < emptyCells; i++) {
-            const empty = document.createElement('div');
-            empty.className = 'empty';
-            calendarGrid.appendChild(empty);
-        }
-
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dayCell = document.createElement('div');
-            dayCell.className = 'day';
-            dayCell.innerText = d;
-
-            // Đánh dấu ngày đặc biệt
-            if (d === targetDate.day && month === targetDate.month && year === targetDate.year) {
-                dayCell.classList.add('save-the-date');
-            }
-
-            calendarGrid.appendChild(dayCell);
-        }
-    }
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        });
-    }
-
+    drawSnow();
+}
+    // --- 4. RENDER LỊCH ---
     renderCalendar();
 });
+
+function renderCalendar() {
+    const monthDisplay = document.getElementById('monthDisplay');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
+
+    let currentMonth = 2; // Tháng 3 (index bắt đầu từ 0)
+    let currentYear = 2026;
+
+    function displayCalendar(month, year) {
+        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+        monthDisplay.textContent = `${monthNames[month]} / ${year}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+        let gridHtml = '';
+        const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        weekdays.forEach(day => {
+            gridHtml += `<div class="weekday">${day}</div>`;
+        });
+
+        let dayCounter = 1;
+        let nextMonthDayCounter = 1;
+
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 7; col++) {
+                if (row === 0 && col < startOffset) {
+                    const prevMonthDay = daysInPrevMonth - startOffset + col + 1;
+                    gridHtml += `<div class="day other-month">${prevMonthDay}</div>`;
+                } else if (dayCounter <= daysInMonth) {
+                    const isSaveDate = (dayCounter === 7 && month === 2 && year === 2026);
+                    gridHtml += `<div class="day ${isSaveDate ? 'save-the-date' : ''}">${dayCounter}</div>`;
+                    dayCounter++;
+                } else {
+                    gridHtml += `<div class="day other-month">${nextMonthDayCounter}</div>`;
+                    nextMonthDayCounter++;
+                }
+            }
+        }
+        calendarGrid.innerHTML = gridHtml;
+    }
+
+    displayCalendar(currentMonth, currentYear);
+
+    prevMonthBtn.addEventListener('click', () => {
+        if (currentMonth === 0) { currentMonth = 11; currentYear--; } 
+        else { currentMonth--; }
+        displayCalendar(currentMonth, currentYear);
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+        if (currentMonth === 11) { currentMonth = 0; currentYear++; } 
+        else { currentMonth++; }
+        displayCalendar(currentMonth, currentYear);
+    });
+}

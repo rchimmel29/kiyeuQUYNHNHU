@@ -64,6 +64,7 @@
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+   <canvas id="snowCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998;"></canvas>
     <div class="door-wrap">
         <img src="./img/trai.jpg" class="door-door left" alt="" />
         <img src="./img/phai.jpg" class="door-door right" alt="" />
@@ -74,7 +75,7 @@
             <span class="bar"></span>
             <span class="bar"></span>
         </div>
-        <audio id="myAudio" src="./Tình Bạn Diệu Kỳ.mp3" loop preload="auto"></audio>
+        <audio id="myAudio" src="./Trời Hửng Nắng _ 晴 (Thiếu Gia Ác Ma Đừng Hôn Tôi Ost) (Vietsub, Kara).mp4" loop preload="auto"></audio>
     </div>
 
     <div id="invite-content" class="invite-content">
@@ -91,7 +92,7 @@
 
                         <div class="invite-section invite-quote">
                             <div class="center quote-text">
-                                “Hy vọng cậu sẽ là một phần trong những kỷ niệm đẹp nhất của mình!”
+                                “Hy vọng cậu sẽ là một phần trong những bức ảnh thanh xuân của mình!”
                             </div>
                         </div>
                         <h3 class="section-script invite-title infotitle">Thông tin</h3>
@@ -112,7 +113,7 @@
                         </div>
 
                         <div class="mt-2">
-                            <p class="calender-title"><b class="font-bold text-korean">🕒 Thời gian:</b> Thứ Bảy, ngày 07/03/2026</p>
+                            <p class="calender-title"><Thời class="font-bold" style="font-weight: 500;">Thời gian:</b> Thứ Bảy, ngày 07/03/2026</p>
                             <div class="calendar-wrapper">
                                 <div class="calendar-header">
                                     <button type="button" id="prevMonth" class="text-body">&lt;</button>
@@ -134,50 +135,9 @@
                             </div>
                         </div>
 
-                        <h3 class="section-script mt-40 invite-title confirmtitle">Xác nhận tham dự</h3>
-                        <h2 class="section-sub">&amp; lời chúc</h2>
-
-                        <form id="rsvp-form" class="invite-form" accept-charset="UTF-8">
-                            <input type="hidden" name="csrf" value="" />
-                            <input type="hidden" name="invite_id" value="15079" />
-
-                            <div class="form-group">
-                                <label for="name">Tên của bạn</label>
-                                <input type="text" id="name" name="name" placeholder="Ví dụ: Quỳnh Như" required />
-                            </div>
-
-                            <div class="form-group normal-text">
-                                <label for="relation">Lời chúc gửi đến Quỳnh Như</label>
-                                <input type="text" id="relation" name="relation" placeholder="Nhập lời chúc của bạn tại đây..." />
-                            </div>
-
-                            <div class="form-group normal-text">
-                                <label for="join">Bạn có tham dự không?</label>
-                                <select class="text-body" name="join" id="join" required>
-                                    <option class="text-body" value="" disabled selected>-- Chọn câu trả lời --</option>
-                                    <option class="text-body" value="yes">Chắc chắn mình sẽ đến! ✨</option>
-                                    <option class="text-body" value="no">Tiếc quá, mình bận mất rồi 🥺</option>
-                                    <option class="text-body" value="maybe">Để mình xem lại lịch nhé 🤔</option>
-                                </select>
-                            </div>
-
-                            <div class="preview-section">
-                                <div class="msg-head normal-text" style="font-size: 20px;">Xem trước lời chúc:</div>
-                                <textarea name="message" id="message-preview" rows="3" class="msg-body font-message-preview" placeholder="Lời chúc của bạn sẽ hiện ở đây..." readonly></textarea>
-                            </div>
-
-                            <button type="submit" class="btn-submit">
-                                <span class="normal-text" style="color: white">GỬI LỜI CHÚC</span>
-                            </button>
-
-                            <div id="rsvp-alert" class="mt-2" style="display: none"></div>
-                        </form>
 
                         <div class="center2 mt-30">
                             <img src="./img/thank-you.png" alt="" width="230" loading="lazy" /><br /><br />
-                            <div class="invite-footer-pro">
-                                <span class="font-serif font-medium text-3xl">Đinh Thị Quỳnh Như & RCH</span>
-                            </div>
                         </div>
                     </div>
                 </div>
