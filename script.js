@@ -37,76 +37,57 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- 2. LOGIC NHẬN DIỆN NHẤN HOẶC TRƯỢT ---
-    let touchStartY = 0;
-    const swipeThreshold = 20; // Khoảng cách trượt tối thiểu để tính là "trượt"
+    let startX = 0;
+    let startY = 0;
 
-    // Hàm xử lý mở thư
-    function handleOpenLetter() {
-        if (!overlay || overlay.style.display === 'none') return;
-
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 500);
-
-        if (doors) {
-            doors.classList.add('open');
-            const content = document.getElementById('invite-content');
-            if (content) content.style.opacity = '1';
-            setTimeout(() => { doors.style.display = 'none'; }, 1800);
-        }
-
-        // Sau khi mở, kích hoạt lắng nghe click/swipe để phát nhạc
-        removeOpenListeners();
-        setTimeout(addMusicListeners, 500);
+    // Hàm kiểm tra xem có phải là thao tác (nhấn nhanh hoặc trượt)
+    function isInteraction(e, moveStartX, moveStartY) {
+        const moveEndX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const moveEndY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        const distance = Math.sqrt(Math.pow(moveEndX - moveStartX, 2) + Math.pow(moveEndY - moveStartY, 2));
+        return distance >= 0; // Chấp nhận mọi khoảng cách (nhấn = 0, trượt > 0)
     }
 
-    // Hàm xử lý phát nhạc
-    function handleStartMusic() {
-        playMusic();
-        removeMusicListeners();
+    // A. XỬ LÝ MỞ THƯ (Overlay)
+    if (overlay) {
+        const handleOverlayAction = (e) => {
+            // Thực hiện hiệu ứng mở thư
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 500);
+
+            if (doors) {
+                doors.classList.add('open');
+                const content = document.getElementById('invite-content');
+                if (content) content.style.opacity = '1';
+                setTimeout(() => { doors.style.display = 'none'; }, 1800);
+            }
+
+            // Gỡ bỏ sự kiện mở thư
+            overlay.removeEventListener('click', handleOverlayAction);
+            overlay.removeEventListener('touchend', handleOverlayAction);
+
+            // Đợi cửa mở xong thì bắt đầu cho phép nhấn để phát nhạc
+            setTimeout(enableMusicActivation, 600);
+        };
+
+        overlay.addEventListener('click', handleOverlayAction);
+        overlay.addEventListener('touchend', handleOverlayAction);
     }
 
-    // --- CÁC BỘ LẮNG NGHE SỰ KIỆN ---
+    // B. XỬ LÝ PHÁT NHẠC (Sau khi thư mở)
+    function enableMusicActivation() {
+        const handleMusicAction = () => {
+            playMusic();
+            // Chỉ cần nhạc phát 1 lần là gỡ bỏ sự kiện toàn màn hình
+            window.removeEventListener('click', handleMusicAction);
+            window.removeEventListener('touchend', handleMusicAction);
+        };
 
-    // Sự kiện cho Overlay (Mở thư)
-    const onOverlayTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
-    const onOverlayTouchEnd = (e) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        if (Math.abs(touchEndY - touchStartY) > swipeThreshold || e.type === 'click') {
-            handleOpenLetter();
-        }
-    };
-
-    function removeOpenListeners() {
-        overlay.removeEventListener('click', handleOpenLetter);
-        overlay.removeEventListener('touchstart', onOverlayTouchStart);
-        overlay.removeEventListener('touchend', onOverlayTouchEnd);
+        window.addEventListener('click', handleMusicAction);
+        window.addEventListener('touchend', handleMusicAction);
     }
 
-    overlay.addEventListener('click', handleOpenLetter);
-    overlay.addEventListener('touchstart', onOverlayTouchStart, {passive: true});
-    overlay.addEventListener('touchend', onOverlayTouchEnd);
-
-    // Sự kiện cho Window (Phát nhạc sau khi mở)
-    const onWindowTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
-    const onWindowTouchEnd = (e) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        // Chấp nhận cả nhấn (khoảng cách nhỏ) hoặc trượt (khoảng cách lớn)
-        handleStartMusic();
-    };
-
-    function addMusicListeners() {
-        window.addEventListener('click', handleStartMusic);
-        window.addEventListener('touchstart', onWindowTouchStart, {passive: true});
-        window.addEventListener('touchend', onWindowTouchEnd);
-    }
-
-    function removeMusicListeners() {
-        window.removeEventListener('click', handleStartMusic);
-        window.removeEventListener('touchstart', onWindowTouchStart);
-        window.removeEventListener('touchend', onWindowTouchEnd);
-    }
-
-    // --- 3. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên của bạn) ---
+    // --- 3. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên) ---
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
