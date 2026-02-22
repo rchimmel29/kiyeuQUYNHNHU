@@ -4,62 +4,70 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('click-overlay');
     const doors = document.querySelector('.door-wrap');
     
-    const startTime = 99; 
-    const endTime = 130;  
+    const startTime = 99; // 1:39
+    const endTime = 130;  // 2:10
 
-    // Hàm hỗ trợ phát nhạc an toàn
-    function playMusic() {
-        audio.currentTime = startTime;
-        let playPromise = audio.play();
-
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
+    // Hàm phát nhạc chuẩn xác
+    function forcePlayMusic() {
+        if (audio.paused) {
+            // Đảm bảo set thời gian trước khi play để không bị nhảy về 0s
+            if (audio.currentTime < startTime || audio.currentTime > endTime) {
+                audio.currentTime = startTime;
+            }
+            
+            audio.play().then(() => {
                 musicControl.classList.add('playing');
-            }).catch(error => {
-                console.log("Playback prevented:", error);
+            }).catch(err => {
+                console.log("Chờ tương tác người dùng để phát nhạc.");
             });
         }
     }
 
-    // Kiểm tra lặp đoạn nhạc
+    // Lặp đoạn nhạc 99s - 130s
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
         }
     });
 
-    // Xử lý khi nhấn Mở Thư
+    // --- XỬ LÝ MỞ THƯ ---
     if (overlay) {
         function startApp(e) {
-            e.preventDefault();
-            overlay.style.opacity = '0';
-            setTimeout(() => { overlay.style.display = 'none'; }, 500);
+            // 1. Phát nhạc ngay lập tức tại điểm chạm
+            forcePlayMusic();
             
-            // Quan trọng: Phát nhạc trước khi làm các hiệu ứng khác
-            playMusic();
-            
-            // Mở cửa
+            // 2. Hiệu ứng mở cửa
+            overlay.style.display = 'none';
             if (doors) {
                 doors.classList.add('open');
                 const content = document.getElementById('invite-content');
                 if (content) content.style.opacity = '1';
                 setTimeout(() => doors.style.display = 'none', 1800);
             }
+            
+            // Gỡ bỏ sự kiện sau khi dùng
+            overlay.removeEventListener('click', startApp);
+            overlay.removeEventListener('touchstart', startApp);
         }
-        
         overlay.addEventListener('click', startApp);
         overlay.addEventListener('touchstart', startApp);
     }
 
-    // Nút điều khiển nhạc thủ công
+    // --- BACKUP: NHẤN VÀO BẤT CỨ ĐÂU ĐỂ PHÁT NHẠC ---
+    // Nếu vì lý do nào đó nhấn overlay chưa phát, lần chạm tiếp theo vào màn hình sẽ kích hoạt
+    document.body.addEventListener('click', function() {
+        forcePlayMusic();
+    }, { once: false }); // Để false để nếu user pause nhạc, nhấn lại vẫn phát được
+
+    document.body.addEventListener('touchstart', function() {
+        forcePlayMusic();
+    }, { once: false });
+
+    // --- NÚT ĐIỀU KHIỂN GÓC MÀN HÌNH ---
     musicControl.addEventListener('click', (e) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Ngăn sự kiện click của body
         if (audio.paused) {
-            if (audio.currentTime < startTime || audio.currentTime > endTime) {
-                audio.currentTime = startTime;
-            }
-            audio.play();
-            musicControl.classList.add('playing');
+            forcePlayMusic();
         } else {
             audio.pause();
             musicControl.classList.remove('playing');
