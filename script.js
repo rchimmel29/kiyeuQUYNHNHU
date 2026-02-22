@@ -8,15 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const startTime = 99; 
     const endTime = 130;  
 
-    function initAudio() {
-        if (audio.paused) {
-            audio.currentTime = startTime;
-            audio.play().then(() => {
-                musicControl.classList.add('playing');
-            }).catch(err => console.log("Lỗi phát nhạc:", err));
-        }
-    }
-
     // Lặp lại đoạn nhạc
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
@@ -24,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Điều khiển nhạc bằng nút (vẫn hoạt động sau khi overlay ẩn)
+    // Điều khiển nhạc bằng nút (góc dưới phải)
     musicControl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (audio.paused) {
@@ -47,11 +38,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- 3. XỬ LÝ OVERLAY (TOUCH TO START) ---
     if (overlay) {
-        overlay.addEventListener('click', function onClick() {
-            overlay.style.display = 'none';   // ẩn lớp phủ
-            initAudio();                      // phát nhạc
-            setTimeout(openDoors, 500);       // mở cửa sau 0.5s
-        });
+        // Hàm kích hoạt – chạy ngay khi người dùng chạm/click
+        function startApp(e) {
+            // Ẩn overlay
+            overlay.style.display = 'none';
+            
+            // Phát nhạc ngay lập tức (không setTimeout)
+            audio.currentTime = startTime;
+            audio.play()
+                .then(() => {
+                    musicControl.classList.add('playing');
+                })
+                .catch(err => {
+                    console.log('Lỗi phát nhạc:', err);
+                    // (một số trình duyệt có thể yêu cầu tương tác lại, nhưng hiếm)
+                });
+            
+            // Mở cửa sau 0.5 giây (việc này không ảnh hưởng đến phát nhạc)
+            setTimeout(openDoors, 500);
+            
+            // Gỡ bỏ event listener sau khi đã kích hoạt (tránh chạy lại)
+            overlay.removeEventListener('click', startApp);
+            overlay.removeEventListener('touchstart', startApp);
+        }
+        
+        // Gắn cả sự kiện click và touchstart để tương thích mobile
+        overlay.addEventListener('click', startApp);
+        overlay.addEventListener('touchstart', startApp);
     } else {
         // Dự phòng: nếu không tìm thấy overlay, vẫn mở cửa sau 0.5s
         setTimeout(openDoors, 500);
