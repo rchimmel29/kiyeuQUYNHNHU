@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.height = height;
             
             // Tỉ lệ thưa: 1 hạt / 12,000 pixel diện tích
-            const density = Math.floor((width * height) / 12000); 
+            const density = Math.floor((width * height) / 9000); 
             particles = [];
             for (let i = 0; i < density; i++) {
                 particles.push(createParticle(true));
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 x: Math.random() * width,
                 y: initial ? Math.random() * height : -20,
                 radius: Math.random() * 2.5 + 2.5, // 2.5px - 5px
-                speedY: Math.random() * 0.6 + 0.7, // Rơi rất chậm lãng mạn
+                speedY: Math.random() * 0.8 + 0.7, // Rơi rất chậm lãng mạn
                 speedX: (Math.random() - 0.5) * 0.3,
                 swing: Math.random() * 0.02,
                 swingStep: Math.random() * Math.PI,
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Đổ màu TRẮNG TUYẾT tinh khôi
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
                 gradient.addColorStop(0, `rgba(255, 255, 255, ${p.opacity})`);   // Tâm trắng rõ
-                gradient.addColorStop(0.6, `rgba(255, 255, 255, ${p.opacity * 0.4})`); // Rìa mờ dần
+                gradient.addColorStop(0.6, `rgba(255, 255, 255, ${p.opacity * 0.8})`); // Rìa mờ dần
                 gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);             // Trong suốt
 
                 ctx.beginPath();
