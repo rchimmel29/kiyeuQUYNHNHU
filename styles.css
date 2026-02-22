@@ -34,7 +34,7 @@
 html, body {
   min-height: 100%;
   overflow-x: hidden;
-  background: #cbd5dc;
+  background: #cbd5dc;;
   font-family: var(--font-body);
   color: var(--text-main);
   line-height: 1.6;
@@ -49,11 +49,50 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
   border: 2px solid transparent;
   background-clip: padding-box;
 }
+.click-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7); /* Làm tối nền một chút */
+    z-index: 10001; /* Phải cao hơn cả door-wrap */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.8s ease;
+}
+
+.click-hint {
+    text-align: center;
+    color: white;
+}
+
+.finger-icon {
+    font-size: 50px;
+    animation: tapAnim 1.2s infinite;
+}
+
+.click-hint p {
+    margin-top: 15px;
+    font-family: var(--font-body);
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+/* Hiệu ứng ngón tay nhấp nháy */
+@keyframes tapAnim {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* Ẩn overlay khi bắt đầu */
+.click-overlay.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
 #snowCanvas {
   pointer-events: none;
   z-index: 9999; /* Đảm bảo tuyết rơi trên tất cả các lớp */
 }
-
 /* ==========================================================================
    DOOR ANIMATION
    ======================================================================= */
