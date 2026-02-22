@@ -1,175 +1,475 @@
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+/* ==========================================================================
+   FONTS & VARIABLES
+   ======================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&family=Mulish:wght@300;400;600;700&family=Great+Vibes&family=Playfair+Display:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
-<title>Đinh Thị Quỳnh Như – 12D5, THPT Lê Viết Thuật</title>
-<meta name="description" content="Trân trọng mời bạn đến tham dự lễ chụp tốt nghiệp của mình!" />
+:root {
+  --font-decorative: 'Great Vibes', cursive;
+  --font-serif: 'Playfair Display', serif;
+  --font-heading: 'EB Garamond', serif;
+  --font-body: 'Mulish', sans-serif;
+  --font-korean: 'Noto Sans KR', sans-serif;
 
-<link rel="canonical" href="https://rchimmel29.github.io/kiyeuquynhnhu/" />
+  --bg-card: #fdfbf9;
+  --bg-accent: #b97a56;
+  --text-main: #444;
+  --text-sub: #6e6e6e;
+  --text-invert: #fff;
+  --border: #d8d8d8;
+  --border-soft: #e0d2c3;
+  --frame: #d6b498;
+  --accent-brown: #a67c52;
+  --accent-gold: #e58424;
 
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://rchimmel29.github.io/kiyeuquynhnhu/" />
-<meta property="og:title" content="Đinh Thị Quỳnh Như🥰" />
-<meta property="og:description" content="Trân trọng mời bạn đến tham dự lễ chụp tốt nghiệp của mình!" />
+  --radius: 12px;
+  --shadow: 0 4px 14px rgba(0,0,0,0.06);
+  --scrollbar-size: 8px;
+}
 
-<meta property="og:image" content="https://rchimmel29.github.io/kiyeuquynhnhu/img/nh%C6%B0.jpg" />
-<meta property="og:image:secure_url" content="https://rchimmel29.github.io/kiyeuquynhnhu/img/nh%C6%B0.jpg" />
-<meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+/* ==========================================================================
+   RESET & BASE
+   ======================================================================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Đinh Thị Quỳnh Như🥰" />
-<meta name="twitter:description" content="Trân trọng mời bạn đến tham dự lễ chụp tốt nghiệp của mình!" />
-<meta name="twitter:image" content="https://rchimmel29.github.io/kiyeuquynhnhu/img/nh%C6%B0.jpg" />
+html, body {
+  min-height: 100%;
+  overflow-x: hidden;
+  background: #cbd5dc;;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  line-height: 1.6;
+}
 
-    <style>
-.music-control {
+/* Scrollbar */
+html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
+*::-webkit-scrollbar { width: var(--scrollbar-size); height: var(--scrollbar-size); }
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+/* ==========================================================================
+   TOUCH TO START OVERLAY
+   ======================================================================= */
+.click-overlay {
     position: fixed;
-    bottom: 25px;
-    right: 25px;
-    /* Thay đổi ở đây: Đảm bảo số này lớn hơn z-index của click-overlay (10000) */
-    z-index: 10001; 
-    background: rgba(255, 255, 255, 0.9);
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    border: 2px solid var(--accent-brown);
-    transition: all 0.3s ease;
+    transition: opacity s ease;
+}
+.click-overlay, 
+.click-hint, 
+.music-control,
+.invite-content {
+    -webkit-tap-highlight-color: transparent; /* Xóa màu xanh trên Chrome/Safari/Android */
+    -webkit-touch-callout: none;                /* Chặn menu khi nhấn giữ */
+    user-select: none;                          /* Không cho phép bôi đen văn bản */
 }
 
-.music-control:hover {
-    transform: scale(1.1);
+.finger-icon {
+    display: block;
+    font-size: 50px;
+    animation: fingerPush 1.5s infinite;
+    pointer-events: none; /* Để cú chạm xuyên qua icon, đi thẳng vào nền */
+}
+.click-hint {
+    text-align: center;
+    color: white;
+    font-family: var(--font-body);
+    animation: bounce 2s infinite;
 }
 
-.music-icon {
-    display: flex;
-    align-items: flex-end;
-    gap: 3px;
-    height: 18px;
+.finger-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
 }
 
-.music-icon .bar {
-    width: 3px;
-    background-color: var(--accent-brown);
-    height: 100%;
-    animation: musicWave 1s ease-in-out infinite;
-    animation-play-state: paused;
+.click-hint p {
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
 }
 
-.music-icon .bar:nth-child(1) { height: 60%; animation-delay: 0.0s; }
-.music-icon .bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
-.music-icon .bar:nth-child(3) { height: 80%; animation-delay: 0.4s; }
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+#snowCanvas {
+  pointer-events: none;
+  z-index: 9999; /* Đảm bảo tuyết rơi trên tất cả các lớp */
+}
+/* ==========================================================================
+   DOOR ANIMATION
+   ======================================================================= */
+#invite-content { opacity: 0; transition: opacity 1.2s ease; }
+.door-wrap { position: fixed; inset: 0; z-index: 9999; display: flex; overflow: hidden; }
+.door-door { width: 50%; height: 100%; object-fit: cover; transition: transform 1.8s ease-in-out; }
+.door-wrap.open .left { transform: translateX(-100%); }
+.door-wrap.open .right { transform: translateX(100%); }
 
-@keyframes musicWave {
-    0%, 100% { height: 20%; }
-    50% { height: 100%; }
+/* ==========================================================================
+   LAYOUT & UTILS
+   ======================================================================= */
+.row { display: flex; justify-content: center; }
+.col-lg-24 {
+  width: 100%;
+  max-width: 900px;
+  padding: 0 12px;
 }
 
-.music-control.playing .bar {
-    animation-play-state: running;
+.text-center { text-align: center; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-30 { margin-top: 30px; }
+.font-bold { font-weight: 700; }
+.text-korean { font-family: var(--font-korean); }
+.text-xl { font-size: 1.25rem; }
+.font-serif { font-family: var(--font-serif); }
+.normal-text { font-family: var(--font-body); font-size: 1rem; }
+
+/* ==========================================================================
+   INVITE CARD – MAIN (mobile first)
+   ======================================================================= */
+.invite-card {
+  background: var(--bg-card) url('./img/backgrounds.jpg') repeat-y;
+  background-size: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 25px;
+  margin: 20px auto;
+  box-shadow: var(--shadow);
 }
-</style>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div id="click-overlay" class="click-overlay">
-    <div class="click-hint">
-        <div class="finger-icon">🌸</div>
-        <div class="finger-icon">👆</div>
-        <p>Nhấn vào đây để mở thư nhé!</p>
-    </div>
-</div>
-   <canvas id="snowCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998;"></canvas>
-    <div class="door-wrap">
-        <img src="./img/trai.jpg" class="door-door left" alt="" />
-        <img src="./img/phai.jpg" class="door-door right" alt="" />
-    </div>
-    <div id="music-control" class="music-control">
-        <div class="music-icon">
-            <span class="bar"></span>
-            <span class="bar"></span>
-            <span class="bar"></span>
-        </div>
-        <audio id="myAudio" src="./nhac.mp4" loop preload="auto" playsinline></audio>
-    </div>
 
-    <div id="invite-content" class="invite-content">
-        <div class="row">
-            <div class="col-lg-24">
-                <div class="card mb-3 hover-shadow-sm" style="border: none">
-                    <div class="card-body text-center invite-card">
-                        <h3 class="invite-title headtitle">Thư mời kỷ yếu</h3>
-                        <h2 class="invite-subtitle">Tốt nghiệp</h2>
+.invite-title {
+  font-family: var(--font-decorative);
+  font-size: 50px;
+  font-weight: 400;
+  color: var(--accent-gold);
+  margin-bottom: 10px;
+  line-height: 0.5;
+}
+.headtitle{
+  font-size: 50px;
+  color: var(--accent-gold);
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+.infotitle{
+  font-size: 40px;
+  margin-top: 5px;
+  margin-bottom: 18px;
+}
+.invite-subtitle {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+.infosubtitle {
+  font-weight: 200;
+  font-size: 15px;
+}
 
-                        <br />
-                        <h3 class="invite-name">Đinh Thị Quỳnh Như</h3>
-                        <p class="invite-badge">12D5, THPT Lê Viết Thuật</p>
+.invite-name {
+  font-family: var(--font-decorative);
+  font-size: 30px;
+  font-weight: 500;
+  color: #333;
+  margin: 10px 0;
+}
 
-                        <div class="invite-section invite-quote">
-                            <div class="center quote-text">
-                                “Hy vọng cậu sẽ là một phần trong những bức ảnh thanh xuân của mình!”
-                            </div>
-                        </div>
-                        <h3 class="section-script invite-title infotitle">Thông tin</h3>
-                        <h2 class="section-sub infosubtitle">Thời gian &amp; địa điểm</h2>
+.invite-badge {
+  background: var(--bg-accent);
+  color: var(--text-invert);
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-block;
+  margin: 10px;
+}
 
-                        <div class="invite-info">
-                            <div class="invite-image">
-                                <div class="img-frame">
-                                    <img src="./img/như.jpg" alt="image" loading="lazy" />
-                                </div>
-                            </div>
+/* Quote */
+.invite-quote {
+  padding: 30px 0;
+  display: flex;
+  justify-content: center;
+}
+.quote-text {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: #555;
+  max-width: 90%;
+}
 
-                            <div class="about-text">
-                                <p>
-                                    Xin mời bạn đến chung vui cùng mình! <span class="animated-heart">❤️</span>
-                                </p>
-                            </div>
-                        </div>
+/* Info Section */
+.section-sub {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-sub);
+  display: inline-block;
+}
 
-                        <div class="mt-2">
-                            <p class="calender-title"><Thời class="font-bold" style="font-weight: 500;">Thời gian:</b> Thứ Bảy, ngày 07/03/2026</p>
-                            <div class="calendar-wrapper">
-                                <div class="calendar-header">
-                                    <button type="button" id="prevMonth" class="text-body">&lt;</button>
-                                    <h3 id="monthDisplay" class="font-bold text-xl">Tháng 3 / 2026</h3>
-                                    <button type="button" id="nextMonth" class="text-body">&gt;</button>
-                                </div>
-                                <div class="calendar-grid" id="calendarGrid"></div>
-                            </div>
+.invite-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  margin: 15px 10px;
+  max-width: 600px;
+}
+.invite-image {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+.img-frame {
+  border: 3px solid var(--bg-accent);
+  border-radius: 15px;
+  overflow: hidden;
+  height: 100%;
+  box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.img-frame:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 25px rgba(0,0,0,0.15), inset 0 -3px 0 rgba(0,0,0,0.05);
+}
+.invite-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.about-text p {
+  font-size: 9px;
+  background: rgba(255,255,255,0.6);
+  padding: 8px 15px;
+  border-radius: 40px;
+  box-shadow: rgba(0, 0, 0, 0.09) 0px 3px 12px;
+}
 
-                            <p class="calender-title" style="font-family: var(--ff-korean); font-weight: 400;"><b style="font-family: var(--ff-korean); font-weight: 500;">▶ Địa chỉ:</b> Sân trường THPT Lê Viết Thuật</p>
+/* ==========================================================================
+   CALENDAR
+   ======================================================================= */
+.calendar-wrapper {
+  width: 90%;
+  max-width: 320px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 10px;
+  border-radius: 24px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
 
-                            <a href="https://www.google.com/maps/search/S%C3%A2n+tr%C6%B0%E1%BB%9Dng+THPT+L%C3%AA+Vi%E1%BA%BFt+Thu%E1%BA%ADt" target="_blank" class="invite-button normal-text" rel="noopener">XEM CHỈ ĐƯỜNG</a>
-                        </div>
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.calendar-header h3 {
+  font-family: var(--font-korean);
+  color: var(--accent-brown);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+.calendar-header button {
+  background: none;
+  border: none;
+  color: var(--accent-brown);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 8px;
+  font-family: var(--font-body);
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+.calendar-header button:hover { opacity: 0.7; }
 
-                        <div class="mt-2">
-                            <div class="contact-info mt-3">
-                                <p class="normal-text"><b>Hotline:</b> <a href="tel:0948689937">094 8689 937</a></p>
-                                <p class="normal-text"><b>Facebook:</b> <a href="https://www.facebook.com/dinhtqnhu" target="_blank" rel="noopener">Quỳnh Như</a></p>
-                            </div>
-                        </div>
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  text-align: center;
+}
+
+.weekday {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #aaa;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day {
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  position: relative;
+  font-family: var(--font-body);
+  transition: background 0.2s, transform 0.2s;
+  background: transparent;
+  cursor: default;
+}
+.day:not(.empty):hover {
+  background: rgba(166,124,82,0.1);
+  transform: scale(1.05);
+}
+
+.save-the-date {
+  background-color: var(--accent-brown);
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(166,124,82,0.4);
+}
+.save-the-date::after {
+  content: '♥';
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  color: #fff;
+  line-height: 1;
+}
+
+.other-month {
+  color: #e0e0e0;
+}
+
+.calender-title {
+  color: var(--accent-brown);
+  margin: 15px 0 5px;
+  font-size: 0.9rem;
+  font-family: var(--font-serif);
+}
+
+/* ==========================================================================
+   BUTTONS & CONTACT
+   ======================================================================= */
+.invite-button {
+  background: var(--bg-accent);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 15px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.invite-button:hover { background: #a5673f; }
+
+.contact-info {
+  background: linear-gradient(145deg, #fffaf5, #fff0e5);
+  border: 1px solid #ffd6b3;
+  border-radius: 20px;
+  padding: 12px;
+  max-width: 250px;
+  margin: 20px auto;
+}
+.contact-info p {
+  margin: 6px 0;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+}
+.contact-info p b { color: #ff7f50; }
+.contact-info a {
+  color: #0077ff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.contact-info a:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ======================================================================= */
+.animated-heart {
+  display: inline-block;
+  color: #ff4d6d;
+  animation: heartBeat 1.5s infinite;
+}
+@keyframes heartBeat {
+  0%, 70% { transform: scale(1); }
+  14%, 42% { transform: scale(1.3); }
+  28% { transform: scale(1); }
+}
 
 
-                        <div class="center2 mt-30">
-                            <img src="./img/thank-you.png" alt="" width="230" loading="lazy" /><br /><br />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+/* ==========================================================================
+   MEDIA QUERIES (giữ lại các phần cần thiết)
+   ======================================================================= */
+@media (min-width: 481px) {
+  .invite-card { padding: 30px; }
+  .invite-title { font-size: 80px; }
+  .invite-subtitle { font-size: 30px; }
+  .invite-name { font-size: 50px; }
+  .invite-badge { padding: 8px 20px; font-size: 16px; }
+  .quote-text { font-size: 24px; max-width: 80%; }
+  .section-sub { font-size: 24px; }
+  .invite-info { gap: 20px; margin: 15px 30px; }
+  .invite-image { width: 140px; height: 140px; }
+  .about-text p { font-size: 1rem; padding: 10px 20px; }
+  .calendar-wrapper { max-width: 400px; padding: 20px; }
+  .calendar-header h3 { font-size: 1.5rem; }
+  .calendar-header button { font-size: 1.5rem; }
+  .calendar-grid { gap: 5px; }
+  .weekday { font-size: 0.75rem; }
+  .day { font-size: 1rem; }
+  .save-the-date::after { font-size: 10px; }
+  .calender-title { font-size: 1rem; }
+  .invite-button { font-size: 1rem; }
+  .contact-info { padding: 15px; }
+  .contact-info p { font-size: 1rem; }
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+@media (min-width: 769px) {
+  .invite-card { padding: 50px; }
+  .invite-title { font-size: 120px; margin-bottom: 30px; }
+  .infotitle { font-size: 50px; }
+  .invite-subtitle { font-size: 30px; }
+  .invite-name { font-size: 65px; }
+  .invite-badge { font-size: 18px; }
+  .quote-text { font-size: 28px; max-width: 70%; }
+  .section-sub { font-size: 28px; }
+  .invite-info { gap: 30px; margin: 15px 50px; }
+  .invite-image { width: 160px; height: 160px; }
+  .about-text p { font-size: 1.2rem; }
+  .calendar-wrapper { max-width: 500px; padding: 24px; }
+  .calendar-header h3 { font-size: 1.8rem; }
+  .calendar-header button { font-size: 1.8rem; }
+  .calendar-grid { gap: 8px; }
+  .weekday { font-size: 0.9rem; }
+  .day { font-size: 1.2rem; }
+  .save-the-date::after { font-size: 12px; }
+  .calender-title { font-size: 1.2rem; }
+  .invite-button { font-size: 1rem; }
+  .contact-info { max-width: 400px; padding: 20px; }
+  .contact-info p { font-size: 1.2rem; }
+}
