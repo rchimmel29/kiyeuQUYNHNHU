@@ -78,6 +78,12 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
     letter-spacing: 1px;
 }
 
+.click-overlay {
+    /* ... các thuộc tính cũ của bạn ... */
+    touch-action: none; /* Ngăn chặn cuộn trang khi đang ở màn hình chờ này */
+    user-select: none;  /* Ngăn chặn việc bôi đen chữ khi nhấn giữ */
+    -webkit-tap-highlight-color: transparent; /* Xóa khung xanh khi chạm trên điện thoại */
+}
 /* Hiệu ứng ngón tay nhấp nháy */
 @keyframes tapAnim {
     0%, 100% { transform: scale(1); opacity: 1; }
