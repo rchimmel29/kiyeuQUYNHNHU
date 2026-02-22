@@ -79,7 +79,21 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
     font-size: 5rem;
     margin-bottom: 1rem;
 }
+.click-overlay, 
+.click-hint, 
+.music-control,
+.invite-content {
+    -webkit-tap-highlight-color: transparent; /* Xóa màu xanh trên Chrome/Safari/Android */
+    -webkit-touch-callout: none;                /* Chặn menu khi nhấn giữ */
+    user-select: none;                          /* Không cho phép bôi đen văn bản */
+}
 
+.finger-icon {
+    display: block;
+    font-size: 50px;
+    animation: fingerPush 1.5s infinite;
+    pointer-events: none; /* Để cú chạm xuyên qua icon, đi thẳng vào nền */
+}
 .click-hint p {
     font-size: 1.5rem;
     background: rgba(255, 255, 255, 0.2);
