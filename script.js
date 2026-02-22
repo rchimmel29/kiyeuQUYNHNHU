@@ -2,32 +2,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('myAudio');
     const musicControl = document.getElementById('music-control');
     
-    // --- 1. QUẢN LÝ NHẠC (Sửa lỗi không nhảy giây trên máy lạ) ---
-    const startTime = 99; // 1:39
-    const endTime = 130;  // 2:10
+    // --- 1. QUẢN LÝ NHẠC (Đảm bảo nhảy đúng giây 99) ---
+    const startTime = 99; 
+    const endTime = 130;  
 
     function initAudio() {
-        // Hàm cưỡng ép nhạc nhảy đến đúng giây 99
         const forceJump = () => {
             audio.currentTime = startTime;
-            // Nếu trình duyệt chưa nhảy được (vẫn ở 0), thử lại sau 100ms
-            if (audio.currentTime < startTime - 1 && audio.readyState > 0) {
-                setTimeout(forceJump, 100);
-                return;
-            }
+            
             audio.play().then(() => {
                 musicControl.classList.add('playing');
-            }).catch(err => console.log("Yêu cầu tương tác người dùng"));
+                // Kiểm tra lại sau khi phát để chắc chắn không bị nhảy về 0
+                setTimeout(() => {
+                    if (Math.abs(audio.currentTime - startTime) > 5) {
+                        audio.currentTime = startTime;
+                    }
+                }, 300);
+            }).catch(err => console.log("Cần tương tác người dùng"));
         };
 
-        // Đợi nhạc load dữ liệu cơ bản rồi mới nhảy giây
         if (audio.readyState >= 2) {
             forceJump();
         } else {
-            audio.addEventListener('loadeddata', forceJump, { once: true });
+            audio.addEventListener('loadedmetadata', forceJump, { once: true });
         }
         
-        // Lặp đoạn nhạc
         audio.addEventListener('timeupdate', function() {
             if (this.currentTime >= endTime) {
                 this.currentTime = startTime;
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Kích hoạt khi người dùng chạm vào trang
     document.addEventListener('click', () => {
         if (audio.paused && audio.currentTime < 1) initAudio();
     }, { once: true });
@@ -62,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
     }
 
-    // --- 3. HIỆU ỨNG TUYẾT TRẮNG THÍCH ỨNG ---
+    // --- 3. HIỆU ỨNG TUYẾT TRẮNG HIỂN THỊ CAO (HIGH VISIBILITY) ---
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -74,8 +72,8 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.width = width;
             canvas.height = height;
             
-            // Tỉ lệ thưa: 1 hạt / 12,000 pixel diện tích
-            const density = Math.floor((width * height) / 9000); 
+            // Tính mật độ hạt: Thưa trên điện thoại, vừa trên máy tính
+            const density = Math.floor((width * height) / 9500); 
             particles = [];
             for (let i = 0; i < density; i++) {
                 particles.push(createParticle(true));
@@ -86,12 +84,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return {
                 x: Math.random() * width,
                 y: initial ? Math.random() * height : -20,
-                radius: Math.random() * 2.5 + 2.5, // 2.5px - 5px
-                speedY: Math.random() * 0.8 + 0.7, // Rơi rất chậm lãng mạn
+                radius: Math.random() * 2 + 3.5, // Kích thước hạt từ 3.5px - 5.5px
+                speedY: Math.random() * 0.5 + 0.7, 
                 speedX: (Math.random() - 0.5) * 0.3,
                 swing: Math.random() * 0.02,
                 swingStep: Math.random() * Math.PI,
-                opacity: Math.random() * 0.5 + 0.3
+                // Độ đặc rất cao (0.8 - 1.0) để tuyết trắng không bị mờ
+                opacity: Math.random() * 0.2 + 0.8 
             };
         }
 
@@ -99,16 +98,24 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.clearRect(0, 0, width, height);
             
             particles.forEach(p => {
-                // Đổ màu TRẮNG TUYẾT tinh khôi
+                ctx.save();
+                
+                // Tạo viền tối rất nhẹ bao quanh hạt để nổi bật trên nền trắng/kem
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'; 
+                
+                // Vẽ hạt tuyết trắng tinh
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-                gradient.addColorStop(0, `rgba(255, 255, 255, ${p.opacity})`);   // Tâm trắng rõ
-                gradient.addColorStop(0.6, `rgba(255, 255, 255, ${p.opacity * 0.8})`); // Rìa mờ dần
-                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);             // Trong suốt
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${p.opacity})`);
+                gradient.addColorStop(0.8, `rgba(255, 255, 255, ${p.opacity * 0.9})`);
+                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
 
                 ctx.beginPath();
                 ctx.fillStyle = gradient;
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                ctx.restore();
 
                 p.y += p.speedY;
                 p.swingStep += p.swing;
@@ -126,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
         drawSnow();
     }
 
-    // --- 4. RENDER LỊCH ---
     renderCalendar();
 });
 
@@ -138,7 +144,7 @@ function renderCalendar() {
 
     if (!monthDisplay || !calendarGrid) return;
 
-    let currentMonth = 2; // Tháng 3
+    let currentMonth = 2; // Tháng 3 (index 0-11)
     let currentYear = 2026;
 
     function displayCalendar(month, year) {
@@ -154,7 +160,9 @@ function renderCalendar() {
 
         let gridHtml = '';
         const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-        weekdays.forEach(day => { gridHtml += `<div class="weekday">${day}</div>`; });
+        weekdays.forEach(day => {
+            gridHtml += `<div class="weekday">${day}</div>`;
+        });
 
         let dayCounter = 1;
         let nextMonthDayCounter = 1;
