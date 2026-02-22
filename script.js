@@ -2,26 +2,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const audio = document.getElementById('myAudio');
     const musicControl = document.getElementById('music-control');
     
-    // --- 1. QUẢN LÝ NHẠC (Đoạn cao trào 1:39 - 2:10) ---
-    const startTime = 99; // Giây thứ 99 (1:39)
-    const endTime = 130;  // Giây thứ 130 (2:10)
+    // --- 1. QUẢN LÝ NHẠC (Sửa lỗi không nhảy giây trên máy lạ) ---
+    const startTime = 99; // 1:39
+    const endTime = 130;  // 2:10
 
     function initAudio() {
-        // Kiểm tra nếu nhạc đã sẵn sàng để tránh lỗi nhảy giây về 0 trên thiết bị lạ
-        const playMusic = () => {
+        // Hàm cưỡng ép nhạc nhảy đến đúng giây 99
+        const forceJump = () => {
             audio.currentTime = startTime;
+            // Nếu trình duyệt chưa nhảy được (vẫn ở 0), thử lại sau 100ms
+            if (audio.currentTime < startTime - 1 && audio.readyState > 0) {
+                setTimeout(forceJump, 100);
+                return;
+            }
             audio.play().then(() => {
                 musicControl.classList.add('playing');
-            }).catch(err => console.log("Yêu cầu tương tác người dùng để phát nhạc"));
+            }).catch(err => console.log("Yêu cầu tương tác người dùng"));
         };
 
-        if (audio.readyState >= 3) {
-            playMusic();
+        // Đợi nhạc load dữ liệu cơ bản rồi mới nhảy giây
+        if (audio.readyState >= 2) {
+            forceJump();
         } else {
-            audio.addEventListener('canplaythrough', playMusic, { once: true });
+            audio.addEventListener('loadeddata', forceJump, { once: true });
         }
         
-        // Lặp đoạn nhạc cố định
+        // Lặp đoạn nhạc
         audio.addEventListener('timeupdate', function() {
             if (this.currentTime >= endTime) {
                 this.currentTime = startTime;
@@ -29,12 +35,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Kích hoạt khi người dùng chạm vào trang lần đầu
+    // Kích hoạt khi người dùng chạm vào trang
     document.addEventListener('click', () => {
-        if (audio.paused) initAudio();
+        if (audio.paused && audio.currentTime < 1) initAudio();
     }, { once: true });
 
-    // Nút điều khiển nhạc thủ công
     musicControl.addEventListener('click', (e) => {
         e.stopPropagation();
         if (audio.paused) {
@@ -57,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
     }
 
-    // --- 3. HIỆU ỨNG TUYẾT RƠI THÍCH ỨNG (ADAPTIVE SNOW) ---
+    // --- 3. HIỆU ỨNG TUYẾT TRẮNG THÍCH ỨNG ---
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -69,25 +74,24 @@ document.addEventListener('DOMContentLoaded', function() {
             canvas.width = width;
             canvas.height = height;
             
-            // Tỷ lệ thưa hơn: 1 hạt cho mỗi 12,000 pixel vuông diện tích
-            // Giúp điện thoại không bị quá dày gây rối mắt
+            // Tỉ lệ thưa: 1 hạt / 12,000 pixel diện tích
             const density = Math.floor((width * height) / 12000); 
             particles = [];
             for (let i = 0; i < density; i++) {
-                particles.push(createParticle(true)); // true để khởi tạo ngẫu nhiên toàn màn hình
+                particles.push(createParticle(true));
             }
         }
 
         function createParticle(initial = false) {
             return {
                 x: Math.random() * width,
-                y: initial ? Math.random() * height : -20, // Lúc đầu rải đều, sau đó chỉ rơi từ đỉnh
-                radius: Math.random() * 3 + 3, // Kích thước hạt từ 3px - 6px (nhìn rõ hơn)
-                speedY: Math.random() * 0.7 + 0.8, // Tốc độ rơi chậm, lãng mạn
-                speedX: (Math.random() - 0.5) * 0.4,
+                y: initial ? Math.random() * height : -20,
+                radius: Math.random() * 2.5 + 2.5, // 2.5px - 5px
+                speedY: Math.random() * 0.6 + 0.7, // Rơi rất chậm lãng mạn
+                speedX: (Math.random() - 0.5) * 0.3,
                 swing: Math.random() * 0.02,
-                swingStep: Math.random() * Math.PI, // Ngẫu nhiên pha dao động
-                opacity: Math.random() * 0.4 + 0.4 // Độ rõ nét vừa phải
+                swingStep: Math.random() * Math.PI,
+                opacity: Math.random() * 0.5 + 0.3
             };
         }
 
@@ -95,23 +99,21 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.clearRect(0, 0, width, height);
             
             particles.forEach(p => {
-                // Đổ màu Gradient gia tăng sắc xanh (Icy Blue)
+                // Đổ màu TRẮNG TUYẾT tinh khôi
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
-                gradient.addColorStop(0, `rgba(178, 235, 242, ${p.opacity})`);   // Xanh Cyan nhạt ở tâm
-                gradient.addColorStop(0.5, `rgba(224, 247, 250, ${p.opacity * 0.7})`); // Xanh trắng ở giữa
-                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);             // Trong suốt ở rìa
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${p.opacity})`);   // Tâm trắng rõ
+                gradient.addColorStop(0.6, `rgba(255, 255, 255, ${p.opacity * 0.4})`); // Rìa mờ dần
+                gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);             // Trong suốt
 
                 ctx.beginPath();
                 ctx.fillStyle = gradient;
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Cập nhật vị trí
                 p.y += p.speedY;
                 p.swingStep += p.swing;
-                p.x += p.speedX + Math.sin(p.swingStep) * 0.5;
+                p.x += p.speedX + Math.sin(p.swingStep) * 0.4;
 
-                // Reset khi rơi hết màn hình
                 if (p.y > height + 10) {
                     Object.assign(p, createParticle(false));
                 }
@@ -136,7 +138,7 @@ function renderCalendar() {
 
     if (!monthDisplay || !calendarGrid) return;
 
-    let currentMonth = 2; // Tháng 3 (index 0-11)
+    let currentMonth = 2; // Tháng 3
     let currentYear = 2026;
 
     function displayCalendar(month, year) {
@@ -145,16 +147,14 @@ function renderCalendar() {
         monthDisplay.textContent = `${monthNames[month]} / ${year}`;
 
         const firstDay = new Date(year, month, 1).getDay();
-        let startOffset = (firstDay === 0) ? 6 : firstDay - 1; // Bắt đầu từ Thứ 2
+        let startOffset = (firstDay === 0) ? 6 : firstDay - 1;
 
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
 
         let gridHtml = '';
         const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-        weekdays.forEach(day => {
-            gridHtml += `<div class="weekday">${day}</div>`;
-        });
+        weekdays.forEach(day => { gridHtml += `<div class="weekday">${day}</div>`; });
 
         let dayCounter = 1;
         let nextMonthDayCounter = 1;
@@ -165,7 +165,6 @@ function renderCalendar() {
                     const prevMonthDay = daysInPrevMonth - startOffset + col + 1;
                     gridHtml += `<div class="day other-month">${prevMonthDay}</div>`;
                 } else if (dayCounter <= daysInMonth) {
-                    // Đánh dấu ngày 7/3/2026
                     const isSaveDate = (dayCounter === 7 && month === 2 && year === 2026);
                     gridHtml += `<div class="day ${isSaveDate ? 'save-the-date' : ''}">${dayCounter}</div>`;
                     dayCounter++;
