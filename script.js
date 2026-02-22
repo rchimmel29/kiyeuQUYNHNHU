@@ -4,115 +4,120 @@ document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('click-overlay');
     const doors = document.querySelector('.door-wrap');
     
-    // Cấu hình đoạn nhạc (giây)
-    const startTime = 99; // 1:39
-    const endTime = 130;  // 2:10
+    // --- 1. CẤU HÌNH NHẠC (1:39 - 2:10) ---
+    const startTime = 99; 
+    const endTime = 130;  
 
-    /**
-     * 1. HÀM PHÁT NHẠC CHUẨN XÁC
-     */
-    function playMusicAtTarget() {
+    function playMusic() {
         if (audio.paused) {
-            // Nhảy đến đúng đoạn 99s trước khi phát
             audio.currentTime = startTime;
-            
-            audio.play()
-                .then(() => {
-                    musicControl.classList.add('playing');
-                })
-                .catch(err => {
-                    console.log("Trình duyệt yêu cầu tương tác thêm để phát nhạc.");
-                });
+            audio.play().then(() => {
+                musicControl.classList.add('playing');
+            }).catch(err => console.log("Chờ tương tác..."));
         }
     }
 
-    /**
-     * 2. LẶP ĐOẠN NHẠC (Loop từ 99s đến 130s)
-     */
     audio.addEventListener('timeupdate', function() {
         if (this.currentTime >= endTime) {
             this.currentTime = startTime;
-            audio.play(); 
+            audio.play();
         }
     });
 
-    /**
-     * 3. XỬ LÝ MỞ THƯ (KHÔNG PHÁT NHẠC)
-     */
-    if (overlay) {
-        const openLetter = (e) => {
-            if (e.cancelable) e.preventDefault();
-
-            // Chỉ làm hiệu ứng mở thư, tuyệt đối không gọi lệnh play nhạc ở đây
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 500);
-
-            if (doors) {
-                doors.classList.add('open');
-                const content = document.getElementById('invite-content');
-                if (content) content.style.opacity = '1';
-                setTimeout(() => doors.style.display = 'none', 1800);
-            }
-
-            // Gỡ bỏ sự kiện mở thư
-            overlay.removeEventListener('click', openLetter);
-            overlay.removeEventListener('touchstart', openLetter);
-
-            // QUAN TRỌNG: Sau khi mở thư xong, mới bắt đầu lắng nghe sự kiện "nhấn đâu cũng phát nhạc"
-            setTimeout(() => {
-                window.addEventListener('click', triggerMusicOnce);
-                window.addEventListener('touchstart', triggerMusicOnce);
-            }, 1000); // Đợi 1s cho cửa mở xong rồi mới cho phép click phát nhạc
-        };
-
-        overlay.addEventListener('click', openLetter);
-        overlay.addEventListener('touchstart', openLetter, { passive: false });
-    }
-
-    /**
-     * 4. HÀM KÍCH HOẠT NHẠC KHI NHẤN MÀN HÌNH (Sau khi cửa mở)
-     */
-    const triggerMusicOnce = () => {
-        playMusicAtTarget();
-        
-        // Sau khi đã phát nhạc lần đầu, gỡ bỏ lắng nghe này để không bị reset nhạc mỗi lần click
-        window.removeEventListener('click', triggerMusicOnce);
-        window.removeEventListener('touchstart', triggerMusicOnce);
-    };
-
-    /**
-     * 5. NÚT ĐIỀU KHIỂN NHẠC GÓC DƯỚI (Duy trì để bật/tắt thủ công)
-     */
     musicControl.addEventListener('click', (e) => {
-        e.stopPropagation(); // Ngăn sự kiện nhảy ngược lên window
+        e.stopPropagation();
         if (audio.paused) {
-            playMusicAtTarget();
+            if (audio.currentTime < startTime || audio.currentTime >= endTime) audio.currentTime = startTime;
+            audio.play();
+            musicControl.classList.add('playing');
         } else {
             audio.pause();
             musicControl.classList.remove('playing');
         }
     });
 
-    /**
-     * 6. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên từ bản gốc)
-     */
+    // --- 2. LOGIC NHẬN DIỆN NHẤN HOẶC TRƯỢT ---
+    let touchStartY = 0;
+    const swipeThreshold = 20; // Khoảng cách trượt tối thiểu để tính là "trượt"
+
+    // Hàm xử lý mở thư
+    function handleOpenLetter() {
+        if (!overlay || overlay.style.display === 'none') return;
+
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.style.display = 'none'; }, 500);
+
+        if (doors) {
+            doors.classList.add('open');
+            const content = document.getElementById('invite-content');
+            if (content) content.style.opacity = '1';
+            setTimeout(() => { doors.style.display = 'none'; }, 1800);
+        }
+
+        // Sau khi mở, kích hoạt lắng nghe click/swipe để phát nhạc
+        removeOpenListeners();
+        setTimeout(addMusicListeners, 500);
+    }
+
+    // Hàm xử lý phát nhạc
+    function handleStartMusic() {
+        playMusic();
+        removeMusicListeners();
+    }
+
+    // --- CÁC BỘ LẮNG NGHE SỰ KIỆN ---
+
+    // Sự kiện cho Overlay (Mở thư)
+    const onOverlayTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
+    const onOverlayTouchEnd = (e) => {
+        const touchEndY = e.changedTouches[0].clientY;
+        if (Math.abs(touchEndY - touchStartY) > swipeThreshold || e.type === 'click') {
+            handleOpenLetter();
+        }
+    };
+
+    function removeOpenListeners() {
+        overlay.removeEventListener('click', handleOpenLetter);
+        overlay.removeEventListener('touchstart', onOverlayTouchStart);
+        overlay.removeEventListener('touchend', onOverlayTouchEnd);
+    }
+
+    overlay.addEventListener('click', handleOpenLetter);
+    overlay.addEventListener('touchstart', onOverlayTouchStart, {passive: true});
+    overlay.addEventListener('touchend', onOverlayTouchEnd);
+
+    // Sự kiện cho Window (Phát nhạc sau khi mở)
+    const onWindowTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
+    const onWindowTouchEnd = (e) => {
+        const touchEndY = e.changedTouches[0].clientY;
+        // Chấp nhận cả nhấn (khoảng cách nhỏ) hoặc trượt (khoảng cách lớn)
+        handleStartMusic();
+    };
+
+    function addMusicListeners() {
+        window.addEventListener('click', handleStartMusic);
+        window.addEventListener('touchstart', onWindowTouchStart, {passive: true});
+        window.addEventListener('touchend', onWindowTouchEnd);
+    }
+
+    function removeMusicListeners() {
+        window.removeEventListener('click', handleStartMusic);
+        window.removeEventListener('touchstart', onWindowTouchStart);
+        window.removeEventListener('touchend', onWindowTouchEnd);
+    }
+
+    // --- 3. HIỆU ỨNG TUYẾT RƠI (Giữ nguyên của bạn) ---
     const canvas = document.getElementById('snowCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d');
         let width, height, particles = [];
-
         function resizeCanvas() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
             const density = Math.floor((width * height) / 10000); 
             particles = [];
             for (let i = 0; i < density; i++) particles.push(createParticle(true));
         }
-
         function createParticle(initial = false) {
             return {
                 x: Math.random() * width,
@@ -125,33 +130,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: Math.random() * 0.2 + 0.65 
             };
         }
-
         function drawSnow() {
             ctx.clearRect(0, 0, width, height);
             particles.forEach(p => {
                 ctx.save();
-                ctx.shadowBlur = 4;
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'; 
+                ctx.shadowBlur = 4; ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'; 
                 ctx.beginPath();
                 ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-                p.y += p.speedY;
-                p.swingStep += p.swing;
+                ctx.fill(); ctx.restore();
+                p.y += p.speedY; p.swingStep += p.swing;
                 p.x += p.speedX + Math.sin(p.swingStep) * 0.4;
                 if (p.y > height + 10) Object.assign(p, createParticle(false));
             });
             requestAnimationFrame(drawSnow);
         }
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        drawSnow();
+        resizeCanvas(); drawSnow();
     }
 
-    /**
-     * 7. LỊCH THÁNG 3/2026
-     */
     renderCalendar();
 });
 
@@ -160,12 +157,8 @@ function renderCalendar() {
     const calendarGrid = document.getElementById('calendarGrid');
     const prevMonthBtn = document.getElementById('prevMonth');
     const nextMonthBtn = document.getElementById('nextMonth');
-    
     if (!monthDisplay || !calendarGrid) return;
-    
-    let currentMonth = 2; // Tháng 3
-    let currentYear = 2026;
-
+    let currentMonth = 2; let currentYear = 2026;
     function displayCalendar(month, year) {
         const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
         monthDisplay.textContent = `${monthNames[month]} / ${year}`;
