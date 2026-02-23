@@ -122,7 +122,7 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
 
 .time-text {
     font-family: var(--font-body);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--accent-brown);
 }
 
@@ -133,7 +133,7 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
 
 /* Responsive cho mobile */
 @media (max-width: 480px) {
-    .time-text { font-size: 0.9rem; }
+    .time-text { font-size: 1rem; }
 }
 /* ==========================================================================
    DOOR ANIMATION
