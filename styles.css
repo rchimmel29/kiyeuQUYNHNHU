@@ -110,6 +110,31 @@ html { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.35) transparent; }
   pointer-events: none;
   z-index: 9999; /* Đảm bảo tuyết rơi trên tất cả các lớp */
 }
+.time-highlight {
+    background: rgba(185, 122, 86, 0.1); /* Màu bg-accent nhưng mờ hơn */
+    border-left: 4px solid var(--bg-accent);
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.time-text {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    color: var(--accent-brown);
+}
+
+.clock-icon {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 480px) {
+    .time-text { font-size: 0.9rem; }
+}
 /* ==========================================================================
    DOOR ANIMATION
    ======================================================================= */
